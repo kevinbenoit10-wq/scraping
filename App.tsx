@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ReceiptProvider } from './src/context/ReceiptContext';
 import HomeScreen from './src/screens/HomeScreen';
 import ScanScreen from './src/screens/ScanScreen';
@@ -14,6 +15,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <SafeAreaProvider>
     <ReceiptProvider>
       <NavigationContainer>
         <StatusBar style="auto" />
@@ -49,5 +51,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </ReceiptProvider>
+    </SafeAreaProvider>
   );
 }
