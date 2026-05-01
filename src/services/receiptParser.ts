@@ -62,7 +62,9 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
     throw new Error('No text response from Claude');
   }
 
-  const jsonText = textContent.text.trim();
+  let jsonText = textContent.text.trim();
+  const codeBlock = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlock) jsonText = codeBlock[1].trim();
   const parsed = JSON.parse(jsonText);
 
   const items: ReceiptItem[] = parsed.items.map(
