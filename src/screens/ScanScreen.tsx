@@ -33,7 +33,7 @@ export default function ScanScreen({ navigation }: Props) {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       quality: 0.8,
       base64: true,
     });
@@ -50,7 +50,7 @@ export default function ScanScreen({ navigation }: Props) {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       quality: 0.8,
       base64: true,
     });
@@ -68,10 +68,8 @@ export default function ScanScreen({ navigation }: Props) {
       setReceipt(receipt);
       navigation.navigate('Claim', { receipt });
     } catch (err) {
-      Alert.alert(
-        'Fout bij scannen',
-        'Kon de bon niet lezen. Probeer een duidelijkere foto.'
-      );
+      const msg = err instanceof Error ? err.message : String(err);
+      Alert.alert('Fout bij scannen', msg);
     } finally {
       setLoading(false);
     }
