@@ -47,6 +47,14 @@
         {
           "photosPermission": "De app gebruikt je fotobibliotheek om bonnetjes te importeren."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": false
+          }
+        }
       ]
     ]
   }

@@ -72,7 +72,7 @@ export default function ScanScreen({ navigation }: Props) {
       return;
     }
 
-    const rateCheck = checkRateLimit();
+    const rateCheck = await checkRateLimit();
     if (!rateCheck.allowed) {
       const mins = Math.ceil(rateCheck.retryAfterSeconds / 60);
       Alert.alert(
@@ -83,7 +83,7 @@ export default function ScanScreen({ navigation }: Props) {
     }
 
     setLoading(true);
-    recordCall();
+    await recordCall();
     setRateLimitInfo({ remainingCalls: rateCheck.remainingCalls });
 
     try {
