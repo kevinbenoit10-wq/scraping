@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Receipt, ReceiptItem } from '../types';
 
+const API_TIMEOUT_MS = 30_000;
+const MAX_ITEMS = 50;
+const MAX_PRICE = 10_000;
+
 const client = new Anthropic({
   apiKey: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '',
   dangerouslyAllowBrowser: true,
@@ -39,60 +43,103 @@ Rules:
 - currency: use EUR for Belgium/Netherlands, USD for USA, etc. Default to EUR
 - Return ONLY the JSON, no other text`;
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function sanitizePrice(value: unknown): number {
+  const n = Number(value);
+  if (!isFinite(n) || n < 0) return 0;
+  return clamp(n, 0, MAX_PRICE);
+}
+
+function sanitizeName(value: unknown): string {
+  if (typeof value !== 'string') return 'Onbekend item';
+  return value.replace(/[<>"'&]/g, '').slice(0, 100).trim() || 'Onbekend item';
+}
+
 export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  let message: Awaited<ReturnType<typeof client.messages.create>>;
+  try {
+    message = await client.messages.create(
       {
-        role: 'user',
-        content: [
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages: [
           {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/jpeg',
-              data: base64Image,
-            },
-          },
-          {
-            type: 'text',
-            text: PARSE_PROMPT,
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: 'image/jpeg',
+                  data: base64Image,
+                },
+              },
+              {
+                type: 'text',
+                text: PARSE_PROMPT,
+              },
+            ],
           },
         ],
       },
-    ],
-  });
+      { signal: controller.signal }
+    );
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Verzoek duurde te lang. Probeer opnieuw.');
+    }
+    // Don't expose internal API error details to the UI
+    throw new Error('Kon de bon niet verwerken. Controleer je internetverbinding en probeer opnieuw.');
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const textContent = message.content.find((c) => c.type === 'text');
   if (!textContent || textContent.type !== 'text') {
-    throw new Error('No text response from Claude');
+    throw new Error('Kon de bon niet lezen. Probeer een duidelijkere foto.');
   }
 
   let jsonText = textContent.text.trim();
   const codeBlock = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlock) jsonText = codeBlock[1].trim();
-  const parsed = JSON.parse(jsonText);
 
-  const items: ReceiptItem[] = parsed.items.map(
-    (item: Omit<ReceiptItem, 'id'>, index: number) => ({
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    throw new Error('Kon de bon niet lezen. Probeer een duidelijkere foto.');
+  }
+
+  if (!Array.isArray(parsed.items)) {
+    throw new Error('Geen items gevonden op de bon.');
+  }
+
+  const rawItems = parsed.items.slice(0, MAX_ITEMS);
+  const items: ReceiptItem[] = rawItems.map(
+    (item: Record<string, unknown>, index: number) => ({
       id: `item-${index}`,
-      name: item.name,
-      quantity: Number(item.quantity) || 1,
-      unitPrice: Number(item.unitPrice) || 0,
-      totalPrice: Number(item.totalPrice) || 0,
-      individualDiscount: Number(item.individualDiscount) || 0,
+      name: sanitizeName(item.name),
+      quantity: clamp(Math.round(Number(item.quantity) || 1), 1, 100),
+      unitPrice: sanitizePrice(item.unitPrice),
+      totalPrice: sanitizePrice(item.totalPrice),
+      individualDiscount: sanitizePrice(item.individualDiscount),
     })
   );
 
   return {
     items,
-    subtotal: Number(parsed.subtotal) || items.reduce((s, i) => s + i.totalPrice, 0),
-    jointDiscount: Number(parsed.jointDiscount) || 0,
-    tax: Number(parsed.tax) || 0,
-    deliveryFee: Number(parsed.deliveryFee) || 0,
-    total: Number(parsed.total) || 0,
-    currency: parsed.currency || 'EUR',
+    subtotal: sanitizePrice(parsed.subtotal) || items.reduce((s, i) => s + i.totalPrice, 0),
+    jointDiscount: sanitizePrice(parsed.jointDiscount),
+    tax: sanitizePrice(parsed.tax),
+    deliveryFee: sanitizePrice(parsed.deliveryFee),
+    total: sanitizePrice(parsed.total),
+    currency: typeof parsed.currency === 'string' ? parsed.currency.slice(0, 3).toUpperCase() : 'EUR',
   };
 }
 

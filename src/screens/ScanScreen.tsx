@@ -14,6 +14,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { parseReceiptImage } from '../services/receiptParser';
+import { checkRateLimit, recordCall } from '../services/rateLimiter';
+import { validateImage } from '../services/imageValidator';
 import { useReceipt } from '../context/ReceiptContext';
 
 type Props = {
@@ -24,6 +26,7 @@ export default function ScanScreen({ navigation }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ remainingCalls: number } | null>(null);
   const { setReceipt } = useReceipt();
 
   async function pickFromCamera() {
@@ -61,14 +64,34 @@ export default function ScanScreen({ navigation }: Props) {
   }
 
   async function analyzeReceipt() {
-    if (!imageBase64) return;
+    if (!imageBase64 || loading) return;
+
+    const imageCheck = validateImage(imageBase64);
+    if (!imageCheck.valid) {
+      Alert.alert('Ongeldige afbeelding', imageCheck.error);
+      return;
+    }
+
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      const mins = Math.ceil(rateCheck.retryAfterSeconds / 60);
+      Alert.alert(
+        'Te veel scans',
+        `Je hebt het limiet bereikt (5 scans per 10 minuten). Probeer opnieuw over ${mins} minuut${mins !== 1 ? 'en' : ''}.`
+      );
+      return;
+    }
+
     setLoading(true);
+    recordCall();
+    setRateLimitInfo({ remainingCalls: rateCheck.remainingCalls });
+
     try {
       const receipt = await parseReceiptImage(imageBase64);
       setReceipt(receipt);
       navigation.navigate('Claim', { receipt });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? err.message : 'Er is een onbekende fout opgetreden.';
       Alert.alert('Fout bij scannen', msg);
     } finally {
       setLoading(false);
@@ -109,23 +132,30 @@ export default function ScanScreen({ navigation }: Props) {
         </View>
 
         {imageUri && (
-          <TouchableOpacity
-            style={[styles.analyzeButton, loading && styles.analyzeButtonDisabled]}
-            onPress={analyzeReceipt}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <View style={styles.loadingRow}>
-                <ActivityIndicator color="#fff" size="small" />
-                <Text style={[styles.analyzeButtonText, { marginLeft: 10 }]}>
-                  Bon analyseren...
-                </Text>
-              </View>
-            ) : (
-              <Text style={styles.analyzeButtonText}>Analyseer bon ✨</Text>
+          <>
+            <TouchableOpacity
+              style={[styles.analyzeButton, loading && styles.analyzeButtonDisabled]}
+              onPress={analyzeReceipt}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <View style={styles.loadingRow}>
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text style={[styles.analyzeButtonText, { marginLeft: 10 }]}>
+                    Bon analyseren...
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.analyzeButtonText}>Analyseer bon ✨</Text>
+              )}
+            </TouchableOpacity>
+            {rateLimitInfo !== null && (
+              <Text style={styles.rateLimitText}>
+                {rateLimitInfo.remainingCalls} scan{rateLimitInfo.remainingCalls !== 1 ? 's' : ''} resterend dit kwartier
+              </Text>
             )}
-          </TouchableOpacity>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -250,5 +280,11 @@ const styles = StyleSheet.create({
   loadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  rateLimitText: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
   },
 });

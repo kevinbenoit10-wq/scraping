@@ -40,9 +40,17 @@ export default function ClaimScreen({ navigation, route }: Props) {
     return COLORS[idx >= 0 ? idx : 0];
   }
 
+  function sanitizeName(raw: string): string {
+    return raw.replace(/[<>"'&]/g, '').slice(0, 30).trim();
+  }
+
   function addPerson() {
-    const name = personName.trim();
+    const name = sanitizeName(personName);
     if (!name) return;
+    if (savedPersons.length >= 20) {
+      Alert.alert('Maximum bereikt', 'Je kunt maximaal 20 personen toevoegen.');
+      return;
+    }
     if (savedPersons.includes(name)) {
       setActivePerson(name);
       setPersonName('');
@@ -166,10 +174,12 @@ export default function ClaimScreen({ navigation, route }: Props) {
               style={styles.input}
               placeholder="Naam invoeren..."
               value={personName}
-              onChangeText={setPersonName}
+              onChangeText={(text) => setPersonName(text.slice(0, 30))}
               onSubmitEditing={addPerson}
               returnKeyType="done"
               placeholderTextColor="#aaa"
+              maxLength={30}
+              autoCorrect={false}
             />
             <TouchableOpacity style={styles.addBtn} onPress={addPerson}>
               <Text style={styles.addBtnText}>+</Text>
