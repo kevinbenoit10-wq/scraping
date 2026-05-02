@@ -118,6 +118,11 @@ export default function ClaimScreen({ navigation, route }: Props) {
               {receipt.currency} {item.unitPrice.toFixed(2)}
               {item.quantity > 1 ? ` = ${receipt.currency} ${item.totalPrice.toFixed(2)}` : ''}
             </Text>
+            {item.individualDiscount > 0 && (
+              <Text style={styles.itemDiscount}>
+                Individuele korting: −{receipt.currency} {item.individualDiscount.toFixed(2)}
+              </Text>
+            )}
           </View>
           <View style={styles.counter}>
             <TouchableOpacity
@@ -188,6 +193,13 @@ export default function ClaimScreen({ navigation, route }: Props) {
           </View>
         </View>
 
+        {receipt.jointDiscount > 0 && (
+          <View style={[styles.deliveryBanner, styles.discountBanner]}>
+            <Text style={styles.discountBannerText}>
+              Gezamenlijke korting {receipt.currency} {receipt.jointDiscount.toFixed(2)} wordt proportioneel verdeeld
+            </Text>
+          </View>
+        )}
         {receipt.deliveryFee > 0 && (
           <View style={styles.deliveryBanner}>
             <Text style={styles.deliveryBannerText}>
@@ -293,6 +305,9 @@ const styles = StyleSheet.create({
     borderLeftColor: '#f39c12',
   },
   deliveryBannerText: { fontSize: 13, color: '#e67e22', fontWeight: '600' },
+  discountBanner: { backgroundColor: '#e8f5e9', borderLeftColor: '#2ecc71' },
+  discountBannerText: { fontSize: 13, color: '#27ae60', fontWeight: '600' },
+  itemDiscount: { fontSize: 12, color: '#27ae60', fontWeight: '600', marginTop: 2 },
   footer: { padding: 20, backgroundColor: '#f8f9ff' },
   continueButton: {
     backgroundColor: '#667eea',

@@ -64,6 +64,22 @@ export default function SummaryScreen({ navigation, route }: Props) {
                 </View>
               ))}
 
+              {person.individualDiscountShare > 0 && (
+                <View style={styles.lineItem}>
+                  <Text style={styles.discountLabel}>Individuele korting</Text>
+                  <Text style={styles.discountValue}>
+                    −{receipt.currency} {person.individualDiscountShare.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {receipt.jointDiscount > 0 && (
+                <View style={styles.lineItem}>
+                  <Text style={styles.discountLabel}>Gezamenlijke korting (aandeel)</Text>
+                  <Text style={styles.discountValue}>
+                    −{receipt.currency} {person.jointDiscountShare.toFixed(2)}
+                  </Text>
+                </View>
+              )}
               {receipt.tax > 0 && (
                 <View style={styles.lineItem}>
                   <Text style={styles.taxLabel}>BTW/belasting aandeel</Text>
@@ -97,6 +113,14 @@ export default function SummaryScreen({ navigation, route }: Props) {
             <Text style={styles.receiptLabel}>Subtotaal</Text>
             <Text style={styles.receiptValue}>{receipt.currency} {receipt.subtotal.toFixed(2)}</Text>
           </View>
+          {receipt.jointDiscount > 0 && (
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Gezamenlijke korting</Text>
+              <Text style={[styles.receiptValue, styles.discountText]}>
+                −{receipt.currency} {receipt.jointDiscount.toFixed(2)}
+              </Text>
+            </View>
+          )}
           {receipt.tax > 0 && (
             <View style={styles.receiptRow}>
               <Text style={styles.receiptLabel}>BTW</Text>
@@ -175,6 +199,9 @@ const styles = StyleSheet.create({
   taxLine: { borderBottomWidth: 0 },
   taxLabel: { fontSize: 13, color: '#999', fontStyle: 'italic' },
   taxValue: { fontSize: 13, color: '#999', fontStyle: 'italic' },
+  discountLabel: { fontSize: 13, color: '#27ae60', fontStyle: 'italic' },
+  discountValue: { fontSize: 13, color: '#27ae60', fontStyle: 'italic', fontWeight: '600' },
+  discountText: { color: '#27ae60', fontWeight: '600' },
   totalLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',

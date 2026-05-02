@@ -4,11 +4,13 @@ export interface ReceiptItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  individualDiscount: number; // discount on this item only (positive = reduction)
 }
 
 export interface Receipt {
   items: ReceiptItem[];
   subtotal: number;
+  jointDiscount: number; // discount on the whole order, split proportionally
   tax: number;
   deliveryFee: number;
   total: number;
@@ -29,6 +31,8 @@ export interface PersonSummary {
     portionCost: number;
   }[];
   subtotal: number;
+  individualDiscountShare: number;
+  jointDiscountShare: number;
   taxShare: number;
   deliveryFeeShare: number;
   total: number;
