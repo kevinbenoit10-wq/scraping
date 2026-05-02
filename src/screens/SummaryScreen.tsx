@@ -65,10 +65,18 @@ export default function SummaryScreen({ navigation, route }: Props) {
               ))}
 
               {receipt.tax > 0 && (
-                <View style={[styles.lineItem, styles.taxLine]}>
+                <View style={styles.lineItem}>
                   <Text style={styles.taxLabel}>BTW/belasting aandeel</Text>
                   <Text style={styles.taxValue}>
                     {receipt.currency} {person.taxShare.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {receipt.deliveryFee > 0 && (
+                <View style={[styles.lineItem, styles.taxLine]}>
+                  <Text style={styles.taxLabel}>Leveringskosten (gelijk verdeeld)</Text>
+                  <Text style={styles.taxValue}>
+                    {receipt.currency} {person.deliveryFeeShare.toFixed(2)}
                   </Text>
                 </View>
               )}
@@ -93,6 +101,12 @@ export default function SummaryScreen({ navigation, route }: Props) {
             <View style={styles.receiptRow}>
               <Text style={styles.receiptLabel}>BTW</Text>
               <Text style={styles.receiptValue}>{receipt.currency} {receipt.tax.toFixed(2)}</Text>
+            </View>
+          )}
+          {receipt.deliveryFee > 0 && (
+            <View style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Leveringskosten</Text>
+              <Text style={styles.receiptValue}>{receipt.currency} {receipt.deliveryFee.toFixed(2)}</Text>
             </View>
           )}
           <View style={[styles.receiptRow, styles.receiptTotalRow]}>

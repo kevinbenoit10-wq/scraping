@@ -10,6 +10,7 @@ export interface Receipt {
   items: ReceiptItem[];
   subtotal: number;
   tax: number;
+  deliveryFee: number;
   total: number;
   currency: string;
 }
@@ -29,6 +30,7 @@ export interface PersonSummary {
   }[];
   subtotal: number;
   taxShare: number;
+  deliveryFeeShare: number;
   total: number;
 }
 

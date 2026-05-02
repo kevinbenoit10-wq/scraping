@@ -18,17 +18,19 @@ const PARSE_PROMPT = `Analyze this receipt image and extract all items. Return a
   ],
   "subtotal": 10.00,
   "tax": 1.20,
-  "total": 11.20,
+  "deliveryFee": 2.99,
+  "total": 14.19,
   "currency": "EUR"
 }
 
 Rules:
-- Extract every line item on the receipt
+- Extract every food/product line item on the receipt (do NOT include delivery fee as an item)
 - If quantity is not shown, assume 1
 - unitPrice = totalPrice / quantity
 - subtotal = sum of all item totalPrices
 - If tax is not shown separately, set tax to 0
-- total = subtotal + tax
+- deliveryFee: extract any delivery, shipping, or service fee shown on the receipt. If none, set to 0
+- total = subtotal + tax + deliveryFee
 - currency: use EUR for Belgium/Netherlands, USD for USA, etc. Default to EUR
 - Return ONLY the JSON, no other text`;
 
@@ -81,6 +83,7 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
     items,
     subtotal: Number(parsed.subtotal) || items.reduce((s, i) => s + i.totalPrice, 0),
     tax: Number(parsed.tax) || 0,
+    deliveryFee: Number(parsed.deliveryFee) || 0,
     total: Number(parsed.total) || 0,
     currency: parsed.currency || 'EUR',
   };
@@ -125,12 +128,11 @@ export function calculateSummaries(
     person.subtotal += portionCost;
   }
 
-  const totalClaimed = Array.from(peopleMap.values()).reduce(
-    (s, p) => s + p.subtotal,
-    0
-  );
+  const people = Array.from(peopleMap.values());
+  const totalClaimed = people.reduce((s, p) => s + p.subtotal, 0);
+  const deliveryFeeShare = people.length > 0 ? receipt.deliveryFee / people.length : 0;
 
-  return Array.from(peopleMap.values()).map((person) => {
+  return people.map((person) => {
     const taxShare =
       totalClaimed > 0 ? (person.subtotal / totalClaimed) * receipt.tax : 0;
     return {
@@ -138,7 +140,8 @@ export function calculateSummaries(
       items: person.items,
       subtotal: person.subtotal,
       taxShare,
-      total: person.subtotal + taxShare,
+      deliveryFeeShare,
+      total: person.subtotal + taxShare + deliveryFeeShare,
     };
   });
 }

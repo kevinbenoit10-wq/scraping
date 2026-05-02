@@ -188,6 +188,14 @@ export default function ClaimScreen({ navigation, route }: Props) {
           </View>
         </View>
 
+        {receipt.deliveryFee > 0 && (
+          <View style={styles.deliveryBanner}>
+            <Text style={styles.deliveryBannerText}>
+              🛵 Leveringskosten {receipt.currency} {receipt.deliveryFee.toFixed(2)} worden gelijk verdeeld
+            </Text>
+          </View>
+        )}
+
         <FlatList
           data={receipt.items}
           keyExtractor={(item) => item.id}
@@ -274,6 +282,17 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  deliveryBanner: {
+    marginHorizontal: 20,
+    marginBottom: 8,
+    backgroundColor: '#fff3e0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#f39c12',
+  },
+  deliveryBannerText: { fontSize: 13, color: '#e67e22', fontWeight: '600' },
   footer: { padding: 20, backgroundColor: '#f8f9ff' },
   continueButton: {
     backgroundColor: '#667eea',
