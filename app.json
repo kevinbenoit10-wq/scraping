@@ -17,7 +17,10 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "De app gebruikt je camera om bonnetjes te scannen.",
-        "NSPhotoLibraryUsageDescription": "De app gebruikt je fotobibliotheek om bonnetjes te importeren."
+        "NSPhotoLibraryUsageDescription": "De app gebruikt je fotobibliotheek om bonnetjes te importeren.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        }
       }
     },
     "android": {
@@ -27,6 +30,7 @@
       },
       "package": "com.receiptsplitter.app",
       "versionCode": 1,
+      "allowBackup": false,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE"
@@ -55,7 +59,8 @@
             "usesCleartextTraffic": false
           }
         }
-      ]
+      ],
+      "expo-screen-capture"
     ]
   }
 }
