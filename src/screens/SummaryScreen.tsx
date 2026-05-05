@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
-import { calculateSummaries } from '../services/receiptParser';
+import { calculateSummaries, mergeReceipts } from '../services/receiptParser';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Summary'>;
@@ -23,7 +23,8 @@ const COLORS = [
 ];
 
 export default function SummaryScreen({ navigation, route }: Props) {
-  const { receipt, claims } = route.params;
+  const { receipts, claims } = route.params;
+  const receipt = mergeReceipts(receipts);
   const summaries = calculateSummaries(receipt, claims);
 
   function personColor(index: number) {
