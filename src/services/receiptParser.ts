@@ -1,73 +1,21 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { Receipt, ReceiptItem } from '../types';
 
-const client = new Anthropic({
-  apiKey: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '',
-  dangerouslyAllowBrowser: true,
-});
-
-const PARSE_PROMPT = `Analyze this receipt image and extract all items. Return a JSON object with this exact structure:
-{
-  "items": [
-    {
-      "name": "Item name",
-      "quantity": 1,
-      "unitPrice": 2.50,
-      "totalPrice": 2.50
-    }
-  ],
-  "subtotal": 10.00,
-  "tax": 1.20,
-  "deliveryFee": 2.99,
-  "total": 14.19,
-  "currency": "EUR"
-}
-
-Rules:
-- Extract every food/product line item on the receipt (do NOT include delivery fee as an item)
-- If quantity is not shown, assume 1
-- unitPrice = totalPrice / quantity
-- subtotal = sum of all item totalPrices
-- If tax is not shown separately, set tax to 0
-- deliveryFee: extract any delivery, shipping, or service fee shown on the receipt. If none, set to 0
-- total = subtotal + tax + deliveryFee
-- currency: use EUR for Belgium/Netherlands, USD for USA, etc. Default to EUR
-- Return ONLY the JSON, no other text`;
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const APP_SECRET = process.env.EXPO_PUBLIC_APP_SECRET;
 
 export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/jpeg',
-              data: base64Image,
-            },
-          },
-          {
-            type: 'text',
-            text: PARSE_PROMPT,
-          },
-        ],
-      },
-    ],
+  const response = await fetch(`${API_URL}/parse-receipt`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64Image, secret: APP_SECRET }),
   });
 
-  const textContent = message.content.find((c) => c.type === 'text');
-  if (!textContent || textContent.type !== 'text') {
-    throw new Error('No text response from Claude');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || `Server error: ${response.status}`);
   }
 
-  let jsonText = textContent.text.trim();
-  const codeBlock = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlock) jsonText = codeBlock[1].trim();
-  const parsed = JSON.parse(jsonText);
+  const parsed = await response.json();
 
   const items: ReceiptItem[] = parsed.items.map(
     (item: Omit<ReceiptItem, 'id'>, index: number) => ({
