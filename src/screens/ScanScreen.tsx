@@ -12,9 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types';
+import { RootStackParamList, Receipt } from '../types';
 import { parseReceiptImage } from '../services/receiptParser';
-import { useReceipt } from '../context/ReceiptContext';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Scan'>;
@@ -24,7 +23,7 @@ export default function ScanScreen({ navigation }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { setReceipt } = useReceipt();
+  const [scannedTickets, setScannedTickets] = useState<{ receipt: Receipt; imageUri: string }[]>([]);
 
   async function pickFromCamera() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -61,12 +60,13 @@ export default function ScanScreen({ navigation }: Props) {
   }
 
   async function analyzeReceipt() {
-    if (!imageBase64) return;
+    if (!imageBase64 || !imageUri) return;
     setLoading(true);
     try {
       const receipt = await parseReceiptImage(imageBase64);
-      setReceipt(receipt);
-      navigation.navigate('Claim', { receipt });
+      setScannedTickets((prev) => [...prev, { receipt, imageUri }]);
+      setImageUri(null);
+      setImageBase64(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       Alert.alert('Fout bij scannen', msg);
@@ -75,25 +75,58 @@ export default function ScanScreen({ navigation }: Props) {
     }
   }
 
+  function removeTicket(index: number) {
+    setScannedTickets((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleContinue() {
+    navigation.navigate('Claim', { receipts: scannedTickets.map((t) => t.receipt) });
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Scan je bon</Text>
         <Text style={styles.subtitle}>
-          Maak een foto van je bon of kies een foto uit je galerij
+          Scan één of meerdere bons. Elk ticket wordt apart getoond.
         </Text>
+
+        {scannedTickets.length > 0 && (
+          <View style={styles.ticketsSection}>
+            <Text style={styles.sectionLabel}>Gescande bons ({scannedTickets.length})</Text>
+            {scannedTickets.map((ticket, index) => (
+              <View key={index} style={styles.ticketRow}>
+                <Image source={{ uri: ticket.imageUri }} style={styles.ticketThumb} />
+                <View style={styles.ticketInfo}>
+                  <Text style={styles.ticketTitle}>Bon {index + 1}</Text>
+                  <Text style={styles.ticketMeta}>
+                    {ticket.receipt.items.length} items • {ticket.receipt.currency} {ticket.receipt.total.toFixed(2)}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => removeTicket(index)} style={styles.removeBtn}>
+                  <Text style={styles.removeBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
 
         {imageUri ? (
           <View style={styles.previewWrapper}>
             <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
-            <TouchableOpacity style={styles.retakeButton} onPress={() => { setImageUri(null); setImageBase64(null); }}>
+            <TouchableOpacity
+              style={styles.retakeButton}
+              onPress={() => { setImageUri(null); setImageBase64(null); }}
+            >
               <Text style={styles.retakeText}>Andere foto</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.placeholderWrapper}>
             <Text style={styles.placeholderIcon}>📄</Text>
-            <Text style={styles.placeholderText}>Nog geen foto geselecteerd</Text>
+            <Text style={styles.placeholderText}>
+              {scannedTickets.length > 0 ? 'Nog een bon toevoegen?' : 'Nog geen foto geselecteerd'}
+            </Text>
           </View>
         )}
 
@@ -127,20 +160,22 @@ export default function ScanScreen({ navigation }: Props) {
             )}
           </TouchableOpacity>
         )}
+
+        {scannedTickets.length > 0 && !imageUri && (
+          <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.85}>
+            <Text style={styles.continueButtonText}>
+              Doorgaan met {scannedTickets.length} bon{scannedTickets.length > 1 ? 'nen' : ''} →
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8f9ff',
-  },
-  container: {
-    padding: 24,
-    alignItems: 'center',
-  },
+  safe: { flex: 1, backgroundColor: '#f8f9ff' },
+  container: { padding: 24, alignItems: 'center' },
   title: {
     fontSize: 28,
     fontWeight: '700',
@@ -153,11 +188,54 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 28,
+    marginBottom: 20,
   },
+  ticketsSection: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  ticketRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 10,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  ticketThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+  },
+  ticketInfo: { flex: 1, marginLeft: 12 },
+  ticketTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a2e' },
+  ticketMeta: { fontSize: 12, color: '#888', marginTop: 2 },
+  removeBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#fee2e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeBtnText: { color: '#e74c3c', fontSize: 12, fontWeight: '700' },
   placeholderWrapper: {
     width: '100%',
-    height: 220,
+    height: 180,
     backgroundColor: '#e8eaf6',
     borderRadius: 20,
     alignItems: 'center',
@@ -165,28 +243,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#c5cae9',
     borderStyle: 'dashed',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  placeholderIcon: {
-    fontSize: 48,
-    marginBottom: 10,
-  },
-  placeholderText: {
-    fontSize: 15,
-    color: '#9e9e9e',
-  },
-  previewWrapper: {
-    width: '100%',
-    marginBottom: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  preview: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#eee',
-    borderRadius: 20,
-  },
+  placeholderIcon: { fontSize: 40, marginBottom: 8 },
+  placeholderText: { fontSize: 14, color: '#9e9e9e' },
+  previewWrapper: { width: '100%', marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
+  preview: { width: '100%', height: 260, backgroundColor: '#eee', borderRadius: 20 },
   retakeButton: {
     marginTop: 10,
     alignSelf: 'center',
@@ -195,37 +257,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#e8eaf6',
     borderRadius: 20,
   },
-  retakeText: {
-    color: '#5c6bc0',
-    fontWeight: '600',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-    width: '100%',
-  },
-  sourceButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  cameraButton: {
-    backgroundColor: '#667eea',
-  },
-  galleryButton: {
-    backgroundColor: '#764ba2',
-  },
-  sourceIcon: {
-    fontSize: 26,
-    marginBottom: 4,
-  },
-  sourceButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 15,
-  },
+  retakeText: { color: '#5c6bc0', fontWeight: '600' },
+  buttonRow: { flexDirection: 'row', gap: 12, marginBottom: 20, width: '100%' },
+  sourceButton: { flex: 1, paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
+  cameraButton: { backgroundColor: '#667eea' },
+  galleryButton: { backgroundColor: '#764ba2' },
+  sourceIcon: { fontSize: 26, marginBottom: 4 },
+  sourceButtonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   analyzeButton: {
     backgroundColor: '#5c6bc0',
     paddingVertical: 16,
@@ -238,17 +276,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    marginBottom: 12,
   },
-  analyzeButtonDisabled: {
-    opacity: 0.7,
-  },
-  analyzeButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  loadingRow: {
-    flexDirection: 'row',
+  analyzeButtonDisabled: { opacity: 0.7 },
+  analyzeButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  loadingRow: { flexDirection: 'row', alignItems: 'center' },
+  continueButton: {
+    backgroundColor: '#667eea',
+    paddingVertical: 16,
+    borderRadius: 30,
+    width: '100%',
     alignItems: 'center',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
+  continueButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

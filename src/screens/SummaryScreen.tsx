@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
-import { calculateSummaries } from '../services/receiptParser';
+import { calculateSummaries, mergeReceipts } from '../services/receiptParser';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Summary'>;
@@ -23,7 +23,8 @@ const COLORS = [
 ];
 
 export default function SummaryScreen({ navigation, route }: Props) {
-  const { receipt, claims } = route.params;
+  const { receipts, claims } = route.params;
+  const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
   const summaries = calculateSummaries(receipt, claims);
 
   function personColor(index: number) {
@@ -64,22 +65,6 @@ export default function SummaryScreen({ navigation, route }: Props) {
                 </View>
               ))}
 
-              {person.individualDiscountShare > 0 && (
-                <View style={styles.lineItem}>
-                  <Text style={styles.discountLabel}>Individuele korting</Text>
-                  <Text style={styles.discountValue}>
-                    −{receipt.currency} {person.individualDiscountShare.toFixed(2)}
-                  </Text>
-                </View>
-              )}
-              {receipt.jointDiscount > 0 && (
-                <View style={styles.lineItem}>
-                  <Text style={styles.discountLabel}>Gezamenlijke korting (aandeel)</Text>
-                  <Text style={styles.discountValue}>
-                    −{receipt.currency} {person.jointDiscountShare.toFixed(2)}
-                  </Text>
-                </View>
-              )}
               {receipt.tax > 0 && (
                 <View style={styles.lineItem}>
                   <Text style={styles.taxLabel}>BTW/belasting aandeel</Text>
@@ -108,19 +93,23 @@ export default function SummaryScreen({ navigation, route }: Props) {
         ))}
 
         <View style={styles.receiptSummary}>
-          <Text style={styles.receiptSummaryTitle}>Bon totaal</Text>
+          <Text style={styles.receiptSummaryTitle}>
+            Bon totaal {receipts.length > 1 ? `(${receipts.length} bons)` : ''}
+          </Text>
+
+          {receipts.length > 1 && receipts.map((r, i) => (
+            <View key={i} style={styles.ticketRow}>
+              <Text style={styles.ticketLabel}>Bon {i + 1}</Text>
+              <Text style={styles.ticketValue}>{r.currency} {r.total.toFixed(2)}</Text>
+            </View>
+          ))}
+
+          {receipts.length > 1 && <View style={styles.divider} />}
+
           <View style={styles.receiptRow}>
             <Text style={styles.receiptLabel}>Subtotaal</Text>
             <Text style={styles.receiptValue}>{receipt.currency} {receipt.subtotal.toFixed(2)}</Text>
           </View>
-          {receipt.jointDiscount > 0 && (
-            <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>Gezamenlijke korting</Text>
-              <Text style={[styles.receiptValue, styles.discountText]}>
-                −{receipt.currency} {receipt.jointDiscount.toFixed(2)}
-              </Text>
-            </View>
-          )}
           {receipt.tax > 0 && (
             <View style={styles.receiptRow}>
               <Text style={styles.receiptLabel}>BTW</Text>
@@ -199,9 +188,6 @@ const styles = StyleSheet.create({
   taxLine: { borderBottomWidth: 0 },
   taxLabel: { fontSize: 13, color: '#999', fontStyle: 'italic' },
   taxValue: { fontSize: 13, color: '#999', fontStyle: 'italic' },
-  discountLabel: { fontSize: 13, color: '#27ae60', fontStyle: 'italic' },
-  discountValue: { fontSize: 13, color: '#27ae60', fontStyle: 'italic', fontWeight: '600' },
-  discountText: { color: '#27ae60', fontWeight: '600' },
   totalLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -224,6 +210,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   receiptSummaryTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', marginBottom: 12 },
+  ticketRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+  },
+  ticketLabel: { fontSize: 13, color: '#888' },
+  ticketValue: { fontSize: 13, color: '#888', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 10 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   receiptLabel: { fontSize: 14, color: '#666' },
   receiptValue: { fontSize: 14, color: '#1a1a2e', fontWeight: '500' },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, ItemClaim, ReceiptItem } from '../types';
 import { useReceipt } from '../context/ReceiptContext';
+import { mergeReceipts } from '../services/receiptParser';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Claim'>;
@@ -26,14 +27,36 @@ const COLORS = [
   '#1abc9c', '#e67e22', '#3498db', '#e91e63', '#00bcd4',
 ];
 
+type ListRow =
+  | { type: 'header'; ticketIndex: number; total: number; currency: string }
+  | { type: 'item'; item: ReceiptItem };
+
 export default function ClaimScreen({ navigation, route }: Props) {
-  const { receipt } = route.params;
+  const { receipts } = route.params;
   const { setClaims } = useReceipt();
+
+  const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
 
   const [personName, setPersonName] = useState('');
   const [savedPersons, setSavedPersons] = useState<string[]>([]);
   const [activePerson, setActivePerson] = useState<string | null>(null);
   const [claims, setLocalClaims] = useState<ItemClaim[]>([]);
+
+  const listData: ListRow[] = useMemo(() => {
+    const rows: ListRow[] = [];
+    for (let ti = 0; ti < receipts.length; ti++) {
+      rows.push({
+        type: 'header',
+        ticketIndex: ti,
+        total: receipts[ti].total,
+        currency: receipts[ti].currency,
+      });
+      receipt.items
+        .filter((item) => item.ticketIndex === ti)
+        .forEach((item) => rows.push({ type: 'item', item }));
+    }
+    return rows;
+  }, [receipt, receipts]);
 
   function personColor(name: string) {
     const idx = savedPersons.indexOf(name) % COLORS.length;
@@ -85,7 +108,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
       return;
     }
     setClaims(claims);
-    navigation.navigate('Summary', { receipt, claims });
+    navigation.navigate('Summary', { receipts, claims });
   }
 
   function renderClaimBadges(itemId: string) {
@@ -95,7 +118,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
         {itemClaims.map((c) => (
           <View key={c.personName} style={[styles.badge, { backgroundColor: personColor(c.personName) }]}>
             <Text style={styles.badgeText}>
-              {c.personName.slice(0, 1).toUpperCase()} {c.portionCount > 1 ? `×${c.portionCount}` : ''}
+              {c.personName.slice(0, 1).toUpperCase()}{c.portionCount > 1 ? ` ×${c.portionCount}` : ''}
             </Text>
           </View>
         ))}
@@ -103,7 +126,19 @@ export default function ClaimScreen({ navigation, route }: Props) {
     );
   }
 
-  function renderItem({ item }: { item: ReceiptItem }) {
+  function renderRow({ item: row }: { item: ListRow }) {
+    if (row.type === 'header') {
+      return (
+        <View style={styles.ticketHeader}>
+          <Text style={styles.ticketHeaderText}>Bon {row.ticketIndex + 1}</Text>
+          <Text style={styles.ticketHeaderTotal}>
+            {row.currency} {row.total.toFixed(2)}
+          </Text>
+        </View>
+      );
+    }
+
+    const { item } = row;
     const myPortions = activePerson ? claimedPortions(item.id, activePerson) : 0;
     const totalClaimed = totalClaimedPortions(item.id);
     const remaining = item.quantity - totalClaimed;
@@ -118,11 +153,6 @@ export default function ClaimScreen({ navigation, route }: Props) {
               {receipt.currency} {item.unitPrice.toFixed(2)}
               {item.quantity > 1 ? ` = ${receipt.currency} ${item.totalPrice.toFixed(2)}` : ''}
             </Text>
-            {item.individualDiscount > 0 && (
-              <Text style={styles.itemDiscount}>
-                Individuele korting: −{receipt.currency} {item.individualDiscount.toFixed(2)}
-              </Text>
-            )}
           </View>
           <View style={styles.counter}>
             <TouchableOpacity
@@ -193,13 +223,6 @@ export default function ClaimScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {receipt.jointDiscount > 0 && (
-          <View style={[styles.deliveryBanner, styles.discountBanner]}>
-            <Text style={styles.discountBannerText}>
-              Gezamenlijke korting {receipt.currency} {receipt.jointDiscount.toFixed(2)} wordt proportioneel verdeeld
-            </Text>
-          </View>
-        )}
         {receipt.deliveryFee > 0 && (
           <View style={styles.deliveryBanner}>
             <Text style={styles.deliveryBannerText}>
@@ -209,9 +232,11 @@ export default function ClaimScreen({ navigation, route }: Props) {
         )}
 
         <FlatList
-          data={receipt.items}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          data={listData}
+          keyExtractor={(row, index) =>
+            row.type === 'header' ? `header-${row.ticketIndex}` : `item-${row.item.id}-${index}`
+          }
+          renderItem={renderRow}
           contentContainerStyle={styles.list}
           style={styles.flex}
         />
@@ -255,20 +280,28 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: '#fff', fontSize: 24, fontWeight: '300' },
   personRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  personChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    opacity: 0.7,
-  },
+  personChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, opacity: 0.7 },
   personChipActive: { opacity: 1, transform: [{ scale: 1.05 }] },
   personChipText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   list: { paddingHorizontal: 20, paddingBottom: 16 },
+  ticketHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#667eea',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  ticketHeaderText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  ticketHeaderTotal: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.9)' },
   itemCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -305,9 +338,6 @@ const styles = StyleSheet.create({
     borderLeftColor: '#f39c12',
   },
   deliveryBannerText: { fontSize: 13, color: '#e67e22', fontWeight: '600' },
-  discountBanner: { backgroundColor: '#e8f5e9', borderLeftColor: '#2ecc71' },
-  discountBannerText: { fontSize: 13, color: '#27ae60', fontWeight: '600' },
-  itemDiscount: { fontSize: 12, color: '#27ae60', fontWeight: '600', marginTop: 2 },
   footer: { padding: 20, backgroundColor: '#f8f9ff' },
   continueButton: {
     backgroundColor: '#667eea',

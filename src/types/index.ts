@@ -4,13 +4,12 @@ export interface ReceiptItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  individualDiscount: number; // discount on this item only (positive = reduction)
+  ticketIndex: number;
 }
 
 export interface Receipt {
   items: ReceiptItem[];
   subtotal: number;
-  jointDiscount: number; // discount on the whole order, split proportionally
   tax: number;
   deliveryFee: number;
   total: number;
@@ -31,8 +30,6 @@ export interface PersonSummary {
     portionCost: number;
   }[];
   subtotal: number;
-  individualDiscountShare: number;
-  jointDiscountShare: number;
   taxShare: number;
   deliveryFeeShare: number;
   total: number;
@@ -41,6 +38,6 @@ export interface PersonSummary {
 export type RootStackParamList = {
   Home: undefined;
   Scan: undefined;
-  Claim: { receipt: Receipt };
-  Summary: { receipt: Receipt; claims: ItemClaim[] };
+  Claim: { receipts: Receipt[] };
+  Summary: { receipts: Receipt[]; claims: ItemClaim[] };
 };
