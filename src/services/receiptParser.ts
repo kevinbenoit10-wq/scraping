@@ -1,6 +1,6 @@
 import { Receipt, ReceiptItem, ItemClaim } from '../types';
 
-const API_URL = process.env.C_API_URL ?? '';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 const APP_SECRET = process.env.EXPO_PUBLIC_APP_SECRET ?? '';
 
 export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
