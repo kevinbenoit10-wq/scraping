@@ -28,7 +28,7 @@ export default function ScanScreen({ navigation }: Props) {
   async function pickFromCamera() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Toestemming nodig', 'Camera toegang is nodig om een bon te scannen.');
+      Alert.alert('Permission required', 'Camera access is needed to scan a receipt.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -45,7 +45,7 @@ export default function ScanScreen({ navigation }: Props) {
   async function pickFromGallery() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Toestemming nodig', 'Galerij toegang is nodig om een foto te importeren.');
+      Alert.alert('Permission required', 'Gallery access is needed to import a photo.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -69,7 +69,7 @@ export default function ScanScreen({ navigation }: Props) {
       setImageBase64(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      Alert.alert('Fout bij scannen', msg);
+      Alert.alert('Scan failed', msg);
     } finally {
       setLoading(false);
     }
@@ -86,19 +86,19 @@ export default function ScanScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Scan je bon</Text>
+        <Text style={styles.title}>Scan your receipt</Text>
         <Text style={styles.subtitle}>
-          Scan één of meerdere bons. Elk ticket wordt apart getoond.
+          Scan one or more receipts. Each ticket will be shown separately.
         </Text>
 
         {scannedTickets.length > 0 && (
           <View style={styles.ticketsSection}>
-            <Text style={styles.sectionLabel}>Gescande bons ({scannedTickets.length})</Text>
+            <Text style={styles.sectionLabel}>Scanned receipts ({scannedTickets.length})</Text>
             {scannedTickets.map((ticket, index) => (
               <View key={index} style={styles.ticketRow}>
                 <Image source={{ uri: ticket.imageUri }} style={styles.ticketThumb} />
                 <View style={styles.ticketInfo}>
-                  <Text style={styles.ticketTitle}>Bon {index + 1}</Text>
+                  <Text style={styles.ticketTitle}>Receipt {index + 1}</Text>
                   <Text style={styles.ticketMeta}>
                     {ticket.receipt.items.length} items • {ticket.receipt.currency} {ticket.receipt.total.toFixed(2)}
                   </Text>
@@ -118,14 +118,14 @@ export default function ScanScreen({ navigation }: Props) {
               style={styles.retakeButton}
               onPress={() => { setImageUri(null); setImageBase64(null); }}
             >
-              <Text style={styles.retakeText}>Andere foto</Text>
+              <Text style={styles.retakeText}>Different photo</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.placeholderWrapper}>
             <Text style={styles.placeholderIcon}>📄</Text>
             <Text style={styles.placeholderText}>
-              {scannedTickets.length > 0 ? 'Nog een bon toevoegen?' : 'Nog geen foto geselecteerd'}
+              {scannedTickets.length > 0 ? 'Add another receipt?' : 'No photo selected yet'}
             </Text>
           </View>
         )}
@@ -137,7 +137,7 @@ export default function ScanScreen({ navigation }: Props) {
           </TouchableOpacity>
           <TouchableOpacity style={[styles.sourceButton, styles.galleryButton]} onPress={pickFromGallery} activeOpacity={0.85}>
             <Text style={styles.sourceIcon}>🖼️</Text>
-            <Text style={styles.sourceButtonText}>Galerij</Text>
+            <Text style={styles.sourceButtonText}>Gallery</Text>
           </TouchableOpacity>
         </View>
 
@@ -152,11 +152,11 @@ export default function ScanScreen({ navigation }: Props) {
               <View style={styles.loadingRow}>
                 <ActivityIndicator color="#fff" size="small" />
                 <Text style={[styles.analyzeButtonText, { marginLeft: 10 }]}>
-                  Bon analyseren...
+                  Analyzing receipt...
                 </Text>
               </View>
             ) : (
-              <Text style={styles.analyzeButtonText}>Analyseer bon ✨</Text>
+              <Text style={styles.analyzeButtonText}>Analyze receipt ✨</Text>
             )}
           </TouchableOpacity>
         )}
@@ -164,7 +164,7 @@ export default function ScanScreen({ navigation }: Props) {
         {scannedTickets.length > 0 && !imageUri && (
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.85}>
             <Text style={styles.continueButtonText}>
-              Doorgaan met {scannedTickets.length} bon{scannedTickets.length > 1 ? 'nen' : ''} →
+              Continue with {scannedTickets.length} receipt{scannedTickets.length > 1 ? 's' : ''} →
             </Text>
           </TouchableOpacity>
         )}
