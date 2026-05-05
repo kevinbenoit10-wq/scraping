@@ -37,6 +37,24 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
   };
 }
 
+export function mergeReceipts(receipts: Receipt[]): Receipt {
+  if (receipts.length === 1) return receipts[0];
+  const items: ReceiptItem[] = receipts.flatMap((r, ri) =>
+    r.items.map((item, i) => ({ ...item, id: `r${ri}-item-${i}` }))
+  );
+  const subtotal = receipts.reduce((s, r) => s + r.subtotal, 0);
+  const tax = receipts.reduce((s, r) => s + r.tax, 0);
+  const deliveryFee = receipts.reduce((s, r) => s + r.deliveryFee, 0);
+  return {
+    items,
+    subtotal,
+    tax,
+    deliveryFee,
+    total: subtotal + tax + deliveryFee,
+    currency: receipts[0].currency,
+  };
+}
+
 export function calculateSummaries(
   receipt: Receipt,
   claims: ItemClaim[]
