@@ -13,7 +13,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.receiptspllitter.app",
+      "bundleIdentifier": "eu.splitr.app",
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access to scan your receipt.",
         "NSPhotoLibraryUsageDescription": "We need photo library access to import receipt photos."
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.receiptsplitter.app",
+      "package": "eu.splitr.app",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE"
@@ -35,15 +35,10 @@
     },
     "plugins": [
       [
-        "expo-camera",
-        {
-          "cameraPermission": "We need camera access to scan your receipt."
-        }
-      ],
-      [
         "expo-image-picker",
         {
-          "photosPermission": "We need photo library access to import receipt photos."
+          "photosPermission": "We need photo library access to import receipt photos.",
+          "cameraPermission": "We need camera access to scan your receipt."
         }
       ]
     ]
