@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ const COLORS = [
 
 export default function SummaryScreen({ navigation, route }: Props) {
   const { receipts, claims } = route.params;
-  const receipt = mergeReceipts(receipts);
+  const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
   const summaries = calculateSummaries(receipt, claims);
 
   function personColor(index: number) {
@@ -34,8 +34,8 @@ export default function SummaryScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Bill summary</Text>
-        <Text style={styles.subtitle}>What everyone owes</Text>
+        <Text style={styles.title}>Rekening overzicht</Text>
+        <Text style={styles.subtitle}>Wat iedereen moet betalen</Text>
 
         {summaries.map((person, idx) => (
           <View key={person.name} style={styles.personCard}>
@@ -67,7 +67,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
 
               {receipt.tax > 0 && (
                 <View style={styles.lineItem}>
-                  <Text style={styles.taxLabel}>Tax share</Text>
+                  <Text style={styles.taxLabel}>BTW/belasting aandeel</Text>
                   <Text style={styles.taxValue}>
                     {receipt.currency} {person.taxShare.toFixed(2)}
                   </Text>
@@ -75,7 +75,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
               )}
               {receipt.deliveryFee > 0 && (
                 <View style={[styles.lineItem, styles.taxLine]}>
-                  <Text style={styles.taxLabel}>Delivery fee (split equally)</Text>
+                  <Text style={styles.taxLabel}>Leveringskosten (gelijk verdeeld)</Text>
                   <Text style={styles.taxValue}>
                     {receipt.currency} {person.deliveryFeeShare.toFixed(2)}
                   </Text>
@@ -83,7 +83,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
               )}
 
               <View style={styles.totalLine}>
-                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalLabel}>Totaal</Text>
                 <Text style={[styles.totalValue, { color: personColor(idx) }]}>
                   {receipt.currency} {person.total.toFixed(2)}
                 </Text>
@@ -93,25 +93,37 @@ export default function SummaryScreen({ navigation, route }: Props) {
         ))}
 
         <View style={styles.receiptSummary}>
-          <Text style={styles.receiptSummaryTitle}>Receipt total</Text>
+          <Text style={styles.receiptSummaryTitle}>
+            Bon totaal {receipts.length > 1 ? `(${receipts.length} bons)` : ''}
+          </Text>
+
+          {receipts.length > 1 && receipts.map((r, i) => (
+            <View key={i} style={styles.ticketRow}>
+              <Text style={styles.ticketLabel}>Bon {i + 1}</Text>
+              <Text style={styles.ticketValue}>{r.currency} {r.total.toFixed(2)}</Text>
+            </View>
+          ))}
+
+          {receipts.length > 1 && <View style={styles.divider} />}
+
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Subtotal</Text>
+            <Text style={styles.receiptLabel}>Subtotaal</Text>
             <Text style={styles.receiptValue}>{receipt.currency} {receipt.subtotal.toFixed(2)}</Text>
           </View>
           {receipt.tax > 0 && (
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>Tax</Text>
+              <Text style={styles.receiptLabel}>BTW</Text>
               <Text style={styles.receiptValue}>{receipt.currency} {receipt.tax.toFixed(2)}</Text>
             </View>
           )}
           {receipt.deliveryFee > 0 && (
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>Delivery fee</Text>
+              <Text style={styles.receiptLabel}>Leveringskosten</Text>
               <Text style={styles.receiptValue}>{receipt.currency} {receipt.deliveryFee.toFixed(2)}</Text>
             </View>
           )}
           <View style={[styles.receiptRow, styles.receiptTotalRow]}>
-            <Text style={styles.receiptTotalLabel}>Total</Text>
+            <Text style={styles.receiptTotalLabel}>Totaal</Text>
             <Text style={styles.receiptTotalValue}>{receipt.currency} {receipt.total.toFixed(2)}</Text>
           </View>
         </View>
@@ -121,7 +133,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
           onPress={() => navigation.navigate('Home')}
           activeOpacity={0.85}
         >
-          <Text style={styles.homeButtonText}>Scan new receipt</Text>
+          <Text style={styles.homeButtonText}>Nieuwe bon scannen</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -198,6 +210,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   receiptSummaryTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', marginBottom: 12 },
+  ticketRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+  },
+  ticketLabel: { fontSize: 13, color: '#888' },
+  ticketValue: { fontSize: 13, color: '#888', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 10 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   receiptLabel: { fontSize: 14, color: '#666' },
   receiptValue: { fontSize: 14, color: '#1a1a2e', fontWeight: '500' },
