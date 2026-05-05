@@ -32,11 +32,11 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
           <Text style={styles.title}>Receipt Splitter</Text>
           <Text style={styles.subtitle}>
-            Scan een bon en splits de rekening eerlijk tussen vrienden
+            Scan a receipt and split the bill fairly among friends
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={handleStart} activeOpacity={0.85}>
-            <Text style={styles.buttonText}>Scan Bon</Text>
+            <Text style={styles.buttonText}>Scan Receipt</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

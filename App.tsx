@@ -36,17 +36,17 @@ export default function App() {
           <Stack.Screen
             name="Scan"
             component={ScanScreen}
-            options={{ title: 'Scan bon' }}
+            options={{ title: 'Scan receipt' }}
           />
           <Stack.Screen
             name="Claim"
             component={ClaimScreen}
-            options={{ title: 'Items kiezen' }}
+            options={{ title: 'Assign items' }}
           />
           <Stack.Screen
             name="Summary"
             component={SummaryScreen}
-            options={{ title: 'Overzicht' }}
+            options={{ title: 'Summary' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

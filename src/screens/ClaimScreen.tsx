@@ -63,7 +63,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
 
   function adjustClaim(item: ReceiptItem, delta: number) {
     if (!activePerson) {
-      Alert.alert('Kies een persoon', 'Selecteer eerst je naam of voeg een nieuwe toe.');
+      Alert.alert('Select a person', 'First select your name or add a new one.');
       return;
     }
     const current = claimedPortions(item.id, activePerson);
@@ -81,7 +81,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
 
   function handleContinue() {
     if (claims.length === 0) {
-      Alert.alert('Geen selecties', 'Duid minstens één item aan.');
+      Alert.alert('No selections', 'Please select at least one item.');
       return;
     }
     setClaims(claims);
@@ -149,9 +149,9 @@ export default function ClaimScreen({ navigation, route }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Wie heeft wat?</Text>
+          <Text style={styles.title}>Who had what?</Text>
           <Text style={styles.subtitle}>
-            Voeg personen toe en duid aan wat ieder heeft besteld
+            Add people and indicate what each person ordered
           </Text>
         </View>
 
@@ -159,7 +159,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
-              placeholder="Naam invoeren..."
+              placeholder="Enter name..."
               value={personName}
               onChangeText={setPersonName}
               onSubmitEditing={addPerson}
@@ -191,7 +191,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
         {receipt.deliveryFee > 0 && (
           <View style={styles.deliveryBanner}>
             <Text style={styles.deliveryBannerText}>
-              🛵 Leveringskosten {receipt.currency} {receipt.deliveryFee.toFixed(2)} worden gelijk verdeeld
+              🛵 Delivery fee {receipt.currency} {receipt.deliveryFee.toFixed(2)} will be split equally
             </Text>
           </View>
         )}
@@ -206,7 +206,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue} activeOpacity={0.85}>
-            <Text style={styles.continueButtonText}>Bekijk rekening →</Text>
+            <Text style={styles.continueButtonText}>View bill →</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
