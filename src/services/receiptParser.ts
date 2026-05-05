@@ -2,7 +2,7 @@ import { Receipt, ReceiptItem } from '../types';
 
 const API_TIMEOUT_MS = 30_000;
 
-export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
+export async function parseReceiptImage(base64Image: string, mediaType = 'image/jpeg'): Promise<Receipt> {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? '';
   const appSecret = process.env.EXPO_PUBLIC_APP_SECRET ?? '';
 
@@ -21,7 +21,7 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${appSecret}`,
       },
-      body: JSON.stringify({ base64Image }),
+      body: JSON.stringify({ base64Image, mediaType }),
       signal: controller.signal,
     });
   } catch (err: unknown) {

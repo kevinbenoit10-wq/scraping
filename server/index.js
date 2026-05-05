@@ -95,7 +95,7 @@ function sanitizeName(value) {
 }
 
 app.post('/api/parse-receipt', scanLimiter, requireAppSecret, async (req, res) => {
-  const { base64Image } = req.body;
+  const { base64Image, mediaType } = req.body;
 
   if (!base64Image || typeof base64Image !== 'string') {
     return res.status(400).json({ error: 'Ongeldige afbeelding.' });
@@ -104,6 +104,9 @@ app.post('/api/parse-receipt', scanLimiter, requireAppSecret, async (req, res) =
   if (base64Image.length > 4 * 1024 * 1024) {
     return res.status(413).json({ error: 'Afbeelding is te groot. Maximaal 3 MB.' });
   }
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const resolvedMediaType = allowedTypes.includes(mediaType) ? mediaType : 'image/jpeg';
 
   let message;
   try {
@@ -116,7 +119,7 @@ app.post('/api/parse-receipt', scanLimiter, requireAppSecret, async (req, res) =
           content: [
             {
               type: 'image',
-              source: { type: 'base64', media_type: 'image/jpeg', data: base64Image },
+              source: { type: 'base64', media_type: resolvedMediaType, data: base64Image },
             },
             { type: 'text', text: PARSE_PROMPT },
           ],

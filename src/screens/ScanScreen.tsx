@@ -25,6 +25,7 @@ type Props = {
 export default function ScanScreen({ navigation }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imageMediaType, setImageMediaType] = useState<string>('image/jpeg');
   const [loading, setLoading] = useState(false);
   const [rateLimitInfo, setRateLimitInfo] = useState<{ remainingCalls: number } | null>(null);
   const { setReceipt } = useReceipt();
@@ -39,10 +40,13 @@ export default function ScanScreen({ navigation }: Props) {
       mediaTypes: 'images',
       quality: 0.4,
       base64: true,
+      allowsEditing: false,
     });
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64 ?? null);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+      setImageBase64(asset.base64 ?? null);
+      setImageMediaType(asset.mimeType ?? 'image/jpeg');
     }
   }
 
@@ -58,8 +62,10 @@ export default function ScanScreen({ navigation }: Props) {
       base64: true,
     });
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64 ?? null);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+      setImageBase64(asset.base64 ?? null);
+      setImageMediaType(asset.mimeType ?? 'image/jpeg');
     }
   }
 
@@ -87,7 +93,7 @@ export default function ScanScreen({ navigation }: Props) {
     setRateLimitInfo({ remainingCalls: rateCheck.remainingCalls });
 
     try {
-      const receipt = await parseReceiptImage(imageBase64);
+      const receipt = await parseReceiptImage(imageBase64, imageMediaType);
       setReceipt(receipt);
       navigation.navigate('Claim', { receipt });
     } catch (err) {
