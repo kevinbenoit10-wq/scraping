@@ -18,8 +18,9 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
   const parsed = await response.json();
 
   const items: ReceiptItem[] = parsed.items.map(
-    (item: Omit<ReceiptItem, 'id'>, index: number) => ({
+    (item: Omit<ReceiptItem, 'id' | 'ticketIndex'>, index: number) => ({
       id: `item-${index}`,
+      ticketIndex: 0,
       name: item.name,
       quantity: Number(item.quantity) || 1,
       unitPrice: Number(item.unitPrice) || 0,
@@ -34,6 +35,24 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
     deliveryFee: Number(parsed.deliveryFee) || 0,
     total: Number(parsed.total) || 0,
     currency: parsed.currency || 'EUR',
+  };
+}
+
+export function mergeReceipts(receipts: Receipt[]): Receipt {
+  const items: ReceiptItem[] = receipts.flatMap((r, ticketIndex) =>
+    r.items.map((item, itemIndex) => ({
+      ...item,
+      id: `t${ticketIndex}-item-${itemIndex}`,
+      ticketIndex,
+    }))
+  );
+  return {
+    items,
+    subtotal: receipts.reduce((s, r) => s + r.subtotal, 0),
+    tax: receipts.reduce((s, r) => s + r.tax, 0),
+    deliveryFee: receipts.reduce((s, r) => s + r.deliveryFee, 0),
+    total: receipts.reduce((s, r) => s + r.total, 0),
+    currency: receipts[0]?.currency || 'EUR',
   };
 }
 
@@ -55,11 +74,7 @@ export function calculateSummaries(
     if (!item) continue;
 
     if (!peopleMap.has(claim.personName)) {
-      peopleMap.set(claim.personName, {
-        name: claim.personName,
-        items: [],
-        subtotal: 0,
-      });
+      peopleMap.set(claim.personName, { name: claim.personName, items: [], subtotal: 0 });
     }
 
     const totalClaimedPortions = claims
