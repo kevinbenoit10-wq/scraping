@@ -24,6 +24,7 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
       quantity: Number(item.quantity) || 1,
       unitPrice: Number(item.unitPrice) || 0,
       totalPrice: Number(item.totalPrice) || 0,
+      ticketIndex: 0,
     })
   );
 
@@ -40,7 +41,7 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
 export function mergeReceipts(receipts: Receipt[]): Receipt {
   if (receipts.length === 1) return receipts[0];
   const items: ReceiptItem[] = receipts.flatMap((r, ri) =>
-    r.items.map((item, i) => ({ ...item, id: `r${ri}-item-${i}` }))
+    r.items.map((item, i) => ({ ...item, id: `r${ri}-item-${i}`, ticketIndex: ri }))
   );
   const subtotal = receipts.reduce((s, r) => s + r.subtotal, 0);
   const tax = receipts.reduce((s, r) => s + r.tax, 0);

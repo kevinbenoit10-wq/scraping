@@ -4,6 +4,7 @@ export interface ReceiptItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  ticketIndex: number;
 }
 
 export interface Receipt {
@@ -37,6 +38,6 @@ export interface PersonSummary {
 export type RootStackParamList = {
   Home: undefined;
   Scan: undefined;
-  Claim: { receipt: Receipt };
-  Summary: { receipt: Receipt; claims: ItemClaim[] };
+  Claim: { receipts: Receipt[] };
+  Summary: { receipts: Receipt[]; claims: ItemClaim[] };
 };

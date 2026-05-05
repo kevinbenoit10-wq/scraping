@@ -66,7 +66,7 @@ export default function ScanScreen({ navigation }: Props) {
     try {
       const receipt = await parseReceiptImage(imageBase64);
       setReceipt(receipt);
-      navigation.navigate('Claim', { receipt });
+      navigation.navigate('Claim', { receipts: [receipt] });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       Alert.alert('Fout bij scannen', msg);
