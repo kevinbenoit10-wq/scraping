@@ -79,17 +79,19 @@ export function calculateSummaries(
   const people = Array.from(peopleMap.values());
   const totalClaimed = people.reduce((s, p) => s + p.subtotal, 0);
   const deliveryFeeShare = people.length > 0 ? receipt.deliveryFee / people.length : 0;
+  const itemsAndTax = receipt.total - receipt.deliveryFee;
 
   return people.map((person) => {
-    const taxShare =
-      totalClaimed > 0 ? (person.subtotal / totalClaimed) * receipt.tax : 0;
+    const proportion = totalClaimed > 0 ? person.subtotal / totalClaimed : 0;
+    const taxShare = proportion * receipt.tax;
+    const total = proportion * itemsAndTax + deliveryFeeShare;
     return {
       name: person.name,
       items: person.items,
       subtotal: person.subtotal,
       taxShare,
       deliveryFeeShare,
-      total: person.subtotal + taxShare + deliveryFeeShare,
+      total,
     };
   });
 }
