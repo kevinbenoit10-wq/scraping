@@ -94,20 +94,12 @@ export default function SummaryScreen({ navigation, route }: Props) {
 
         <View style={styles.receiptSummary}>
           <Text style={styles.receiptSummaryTitle}>
-<<<<<<< HEAD
             Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
-=======
-            Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
->>>>>>> 0fa62d608eb815afdf566d1259776848ee302340
           </Text>
 
           {receipts.length > 1 && receipts.map((r, i) => (
             <View key={i} style={styles.ticketRow}>
-<<<<<<< HEAD
               <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
-=======
-              <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
->>>>>>> 0fa62d608eb815afdf566d1259776848ee302340
               <Text style={styles.ticketValue}>{r.currency} {r.total.toFixed(2)}</Text>
             </View>
           ))}
