@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ const COLORS = [
 
 export default function SummaryScreen({ navigation, route }: Props) {
   const { receipts, claims } = route.params;
-  const receipt = mergeReceipts(receipts);
+  const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
   const summaries = calculateSummaries(receipt, claims);
 
   function personColor(index: number) {
@@ -93,7 +93,19 @@ export default function SummaryScreen({ navigation, route }: Props) {
         ))}
 
         <View style={styles.receiptSummary}>
-          <Text style={styles.receiptSummaryTitle}>Receipt total</Text>
+          <Text style={styles.receiptSummaryTitle}>
+            Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
+          </Text>
+
+          {receipts.length > 1 && receipts.map((r, i) => (
+            <View key={i} style={styles.ticketRow}>
+              <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
+              <Text style={styles.ticketValue}>{r.currency} {r.total.toFixed(2)}</Text>
+            </View>
+          ))}
+
+          {receipts.length > 1 && <View style={styles.divider} />}
+
           <View style={styles.receiptRow}>
             <Text style={styles.receiptLabel}>Subtotal</Text>
             <Text style={styles.receiptValue}>{receipt.currency} {receipt.subtotal.toFixed(2)}</Text>
@@ -198,6 +210,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   receiptSummaryTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', marginBottom: 12 },
+  ticketRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+  },
+  ticketLabel: { fontSize: 13, color: '#888' },
+  ticketValue: { fontSize: 13, color: '#888', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 10 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   receiptLabel: { fontSize: 14, color: '#666' },
   receiptValue: { fontSize: 14, color: '#1a1a2e', fontWeight: '500' },
