@@ -34,8 +34,8 @@ export default function SummaryScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Rekening overzicht</Text>
-        <Text style={styles.subtitle}>Wat iedereen moet betalen</Text>
+        <Text style={styles.title}>Bill summary</Text>
+        <Text style={styles.subtitle}>What everyone owes</Text>
 
         {summaries.map((person, idx) => (
           <View key={person.name} style={styles.personCard}>
@@ -67,7 +67,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
 
               {receipt.tax > 0 && (
                 <View style={styles.lineItem}>
-                  <Text style={styles.taxLabel}>BTW/belasting aandeel</Text>
+                  <Text style={styles.taxLabel}>Tax share</Text>
                   <Text style={styles.taxValue}>
                     {receipt.currency} {person.taxShare.toFixed(2)}
                   </Text>
@@ -75,7 +75,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
               )}
               {receipt.deliveryFee > 0 && (
                 <View style={[styles.lineItem, styles.taxLine]}>
-                  <Text style={styles.taxLabel}>Leveringskosten (gelijk verdeeld)</Text>
+                  <Text style={styles.taxLabel}>Delivery fee (split equally)</Text>
                   <Text style={styles.taxValue}>
                     {receipt.currency} {person.deliveryFeeShare.toFixed(2)}
                   </Text>
@@ -83,7 +83,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
               )}
 
               <View style={styles.totalLine}>
-                <Text style={styles.totalLabel}>Totaal</Text>
+                <Text style={styles.totalLabel}>Total</Text>
                 <Text style={[styles.totalValue, { color: personColor(idx) }]}>
                   {receipt.currency} {person.total.toFixed(2)}
                 </Text>
@@ -95,7 +95,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
         <View style={styles.receiptSummary}>
           <Text style={styles.receiptSummaryTitle}>
 <<<<<<< HEAD
-            Bon totaal {receipts.length > 1 ? `(${receipts.length} bons)` : ''}
+            Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
 =======
             Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
 >>>>>>> 0fa62d608eb815afdf566d1259776848ee302340
@@ -104,7 +104,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
           {receipts.length > 1 && receipts.map((r, i) => (
             <View key={i} style={styles.ticketRow}>
 <<<<<<< HEAD
-              <Text style={styles.ticketLabel}>Bon {i + 1}</Text>
+              <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
 =======
               <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
 >>>>>>> 0fa62d608eb815afdf566d1259776848ee302340
@@ -115,23 +115,23 @@ export default function SummaryScreen({ navigation, route }: Props) {
           {receipts.length > 1 && <View style={styles.divider} />}
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Subtotaal</Text>
+            <Text style={styles.receiptLabel}>Subtotal</Text>
             <Text style={styles.receiptValue}>{receipt.currency} {receipt.subtotal.toFixed(2)}</Text>
           </View>
           {receipt.tax > 0 && (
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>BTW</Text>
+              <Text style={styles.receiptLabel}>Tax</Text>
               <Text style={styles.receiptValue}>{receipt.currency} {receipt.tax.toFixed(2)}</Text>
             </View>
           )}
           {receipt.deliveryFee > 0 && (
             <View style={styles.receiptRow}>
-              <Text style={styles.receiptLabel}>Leveringskosten</Text>
+              <Text style={styles.receiptLabel}>Delivery fee</Text>
               <Text style={styles.receiptValue}>{receipt.currency} {receipt.deliveryFee.toFixed(2)}</Text>
             </View>
           )}
           <View style={[styles.receiptRow, styles.receiptTotalRow]}>
-            <Text style={styles.receiptTotalLabel}>Totaal</Text>
+            <Text style={styles.receiptTotalLabel}>Total</Text>
             <Text style={styles.receiptTotalValue}>{receipt.currency} {receipt.total.toFixed(2)}</Text>
           </View>
         </View>
@@ -141,7 +141,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
           onPress={() => navigation.navigate('Home')}
           activeOpacity={0.85}
         >
-          <Text style={styles.homeButtonText}>Nieuwe bon scannen</Text>
+          <Text style={styles.homeButtonText}>Scan new receipt</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
