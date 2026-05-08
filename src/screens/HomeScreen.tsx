@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -32,7 +31,6 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
         <Text style={styles.title}>splitr</Text>
         <Text style={styles.subtitle}>Split any bill fairly among friends</Text>
 
@@ -71,12 +69,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
-  },
-  logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 22,
-    marginBottom: 16,
   },
   title: {
     fontSize: 40,
