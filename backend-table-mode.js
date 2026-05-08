@@ -236,8 +236,14 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('close_session', ({ code }) => {
-    sessions.delete(code);
+  socket.on('close_session', ({ code, summaries }) => {
+    const session = sessions.get(code);
+    if (!session) return;
+    // Keep session alive for 2h (auto-cleanup handles deletion)
+    // but mark as closed and store summaries so guests can see their total
+    session.closed = true;
+    session.summaries = summaries || [];
+    io.to(code).emit('session_closed', { summaries: session.summaries });
   });
 });
 

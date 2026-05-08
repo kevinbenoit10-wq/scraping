@@ -15,7 +15,7 @@ import { io, Socket } from 'socket.io-client';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, ItemClaim } from '../types';
-import { mergeReceipts, expandItemsByQuantity } from '../services/receiptParser';
+import { mergeReceipts, expandItemsByQuantity, calculateSummaries } from '../services/receiptParser';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
@@ -89,13 +89,25 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
       portionCount: 1,
     }));
 
-    socketRef.current?.emit('close_session', { code: sessionCode });
+    const summaries = calculateSummaries(receipt, itemClaims).map(s => ({
+      personName: s.name,
+      total: s.total,
+      currency: receipt.currency,
+      items: s.items.map(({ item, portionCost }) => ({
+        name: item.name,
+        amount: portionCost,
+      })),
+    }));
+
+    socketRef.current?.emit('close_session', { code: sessionCode, summaries });
     socketRef.current?.disconnect();
 
-    navigation.navigate('Summary', {
-      receipts: [receipt],
-      claims: itemClaims,
-      mode: 'table-mode',
+    navigation.reset({
+      index: 0,
+      routes: [
+        { name: 'Home' },
+        { name: 'Summary', params: { receipts: [receipt], claims: itemClaims, mode: 'table-mode' } },
+      ],
     });
   }
 
