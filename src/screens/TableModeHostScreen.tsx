@@ -38,7 +38,7 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
   const joinUrl = sessionCode ? `${API_URL}/join/${sessionCode}` : '';
 
   useEffect(() => {
-    const socket = io(API_URL, { transports: ['websocket'] });
+    const socket = io(API_URL, { transports: ['websocket', 'polling'] });
     socketRef.current = socket;
 
     socket.on('connect', () => {
