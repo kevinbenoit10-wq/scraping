@@ -203,12 +203,14 @@ io.on('connection', (socket) => {
       socket.emit('error', 'Session not found');
       return;
     }
+    if (session.participants.includes(name)) {
+      socket.emit('error', 'Name already taken, choose another name');
+      return;
+    }
     socket.join(code);
     socket.data.code = code;
     socket.data.name = name;
-    if (!session.participants.includes(name)) {
-      session.participants.push(name);
-    }
+    session.participants.push(name);
     socket.emit('session_state', { items: session.items, claims: session.claims });
     io.to(code).emit('session_update', {
       claims: session.claims,
