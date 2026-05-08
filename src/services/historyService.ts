@@ -9,19 +9,28 @@ export async function saveHistoryEntry(
   summaries: PersonSummary[]
 ): Promise<void> {
   try {
+    const existing = await getHistory();
+    const total = summaries.reduce((sum, p) => sum + p.total, 0);
+
+    // Voorkom duplicaten: niet opslaan als laatste entry zelfde total/currency heeft binnen 10 seconden
+    const last = existing[0];
+    if (last && last.currency === currency && Math.abs(last.total - total) < 0.01 &&
+        Date.now() - new Date(last.date).getTime() < 10000) {
+      return;
+    }
+
     const entry: HistoryEntry = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
       mode,
       currency,
-      total: summaries.reduce((sum, p) => sum + p.total, 0),
+      total,
       payments: summaries.map(p => ({
         personName: p.name,
         amount: p.total,
         paid: false,
       })),
     };
-    const existing = await getHistory();
     await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify([entry, ...existing]));
   } catch (e) {
     console.warn('Failed to save history', e);
