@@ -38,6 +38,20 @@ export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
   };
 }
 
+export function expandItemsByQuantity(receipt: Receipt): Receipt {
+  const expanded: ReceiptItem[] = receipt.items.flatMap((item) => {
+    if (item.quantity <= 1) return [item];
+    return Array.from({ length: item.quantity }, (_, i) => ({
+      ...item,
+      id: `${item.id}-q${i}`,
+      name: item.quantity > 1 ? `${item.name} (${i + 1})` : item.name,
+      quantity: 1,
+      totalPrice: item.unitPrice || item.totalPrice / item.quantity,
+    }));
+  });
+  return { ...receipt, items: expanded };
+}
+
 export function mergeReceipts(receipts: Receipt[]): Receipt {
   if (receipts.length === 1) return receipts[0];
   const items: ReceiptItem[] = receipts.flatMap((r, ri) =>
