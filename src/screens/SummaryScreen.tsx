@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
 import { calculateSummaries, mergeReceipts } from '../services/receiptParser';
+import { saveHistoryEntry } from '../services/historyService';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Summary'>;
@@ -23,9 +24,13 @@ const COLORS = [
 ];
 
 export default function SummaryScreen({ navigation, route }: Props) {
-  const { receipts, claims } = route.params;
+  const { receipts, claims, mode } = route.params;
   const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
   const summaries = calculateSummaries(receipt, claims);
+
+  useEffect(() => {
+    saveHistoryEntry(mode ?? 'scan-split', receipt.currency, summaries);
+  }, []);
 
   function personColor(index: number) {
     return COLORS[index % COLORS.length];

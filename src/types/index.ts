@@ -35,9 +35,26 @@ export interface PersonSummary {
   total: number;
 }
 
+export interface PaymentRecord {
+  personName: string;
+  amount: number;
+  paid: boolean;
+}
+
+export interface HistoryEntry {
+  id: string;
+  date: string;
+  mode: 'scan-split' | 'table-mode';
+  currency: string;
+  total: number;
+  payments: PaymentRecord[];
+}
+
 export type RootStackParamList = {
   Home: undefined;
-  Scan: undefined;
+  Scan: { tableMode?: boolean } | undefined;
   Claim: { receipts: Receipt[] };
-  Summary: { receipts: Receipt[]; claims: ItemClaim[] };
+  Summary: { receipts: Receipt[]; claims: ItemClaim[]; mode?: 'scan-split' | 'table-mode' };
+  TableModeHost: { receipts: Receipt[] };
+  History: undefined;
 };

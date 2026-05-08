@@ -12,14 +12,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, Receipt } from '../types';
 import { parseReceiptImage } from '../services/receiptParser';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Scan'>;
+  route: RouteProp<RootStackParamList, 'Scan'>;
 };
 
-export default function ScanScreen({ navigation }: Props) {
+export default function ScanScreen({ navigation, route }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,7 +82,12 @@ export default function ScanScreen({ navigation }: Props) {
   }
 
   function handleContinue() {
-    navigation.navigate('Claim', { receipts: scannedTickets.map((t) => t.receipt) });
+    const receipts = scannedTickets.map((t) => t.receipt);
+    if (route.params?.tableMode) {
+      navigation.navigate('TableModeHost', { receipts });
+    } else {
+      navigation.navigate('Claim', { receipts });
+    }
   }
 
   return (
