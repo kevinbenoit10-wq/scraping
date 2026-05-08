@@ -18,9 +18,14 @@ type Props = {
 export default function HomeScreen({ navigation }: Props) {
   const { reset } = useReceipt();
 
-  function handleStart() {
+  function handleScanSplit() {
     reset();
-    navigation.navigate('Scan');
+    navigation.navigate('Scan', {});
+  }
+
+  function handleTableMode() {
+    reset();
+    navigation.navigate('Scan', { tableMode: true });
   }
 
   return (
@@ -30,13 +35,33 @@ export default function HomeScreen({ navigation }: Props) {
           <View style={styles.iconWrapper}>
             <Text style={styles.icon}>🧾</Text>
           </View>
-          <Text style={styles.title}>Receipt Splitter</Text>
+          <Text style={styles.title}>Splitr</Text>
           <Text style={styles.subtitle}>
-            Scan a receipt and split the bill fairly among friends
+            Split any bill fairly among friends
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={handleStart} activeOpacity={0.85}>
-            <Text style={styles.buttonText}>Scan Receipt</Text>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleScanSplit} activeOpacity={0.85}>
+            <Text style={styles.buttonIcon}>📸</Text>
+            <View style={styles.buttonTextBlock}>
+              <Text style={styles.primaryButtonTitle}>Scan & Split</Text>
+              <Text style={styles.primaryButtonSub}>You assign items for everyone</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleTableMode} activeOpacity={0.85}>
+            <Text style={styles.buttonIcon}>🍽️</Text>
+            <View style={styles.buttonTextBlock}>
+              <Text style={styles.secondaryButtonTitle}>Table Mode</Text>
+              <Text style={styles.secondaryButtonSub}>Everyone claims their own items</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.historyButton}
+            onPress={() => navigation.navigate('History')}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.historyButtonText}>📋  History</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -45,58 +70,77 @@ export default function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
-  safe: {
-    flex: 1,
-  },
+  gradient: { flex: 1 },
+  safe: { flex: 1 },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
   },
   iconWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 28,
+    width: 90,
+    height: 90,
+    borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  icon: {
-    fontSize: 52,
-  },
+  icon: { fontSize: 46 },
   title: {
-    fontSize: 34,
-    fontWeight: '700',
+    fontSize: 38,
+    fontWeight: '800',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.85)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 48,
+    lineHeight: 22,
+    marginBottom: 40,
   },
-  button: {
+  primaryButton: {
     backgroundColor: '#fff',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 30,
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 6,
   },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#764ba2',
+  secondaryButton: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+    marginBottom: 32,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
+  buttonIcon: { fontSize: 32 },
+  buttonTextBlock: { flex: 1 },
+  primaryButtonTitle: { fontSize: 17, fontWeight: '700', color: '#764ba2' },
+  primaryButtonSub: { fontSize: 12, color: '#aaa', marginTop: 2 },
+  secondaryButtonTitle: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  secondaryButtonSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 },
+  historyButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+  },
+  historyButtonText: { color: 'rgba(255,255,255,0.75)', fontSize: 15, fontWeight: '600' },
 });

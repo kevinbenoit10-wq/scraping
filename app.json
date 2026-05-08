@@ -13,6 +13,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "requireFullScreen": true,
       "bundleIdentifier": "eu.splitr.app",
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access to scan your receipt.",
