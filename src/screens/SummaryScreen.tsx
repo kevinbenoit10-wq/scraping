@@ -12,16 +12,12 @@ import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
 import { calculateSummaries, mergeReceipts } from '../services/receiptParser';
 import { saveHistoryEntry } from '../services/historyService';
+import { C, PERSON_COLORS } from '../theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Summary'>;
   route: RouteProp<RootStackParamList, 'Summary'>;
 };
-
-const COLORS = [
-  '#667eea', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
-  '#1abc9c', '#e67e22', '#3498db', '#e91e63', '#00bcd4',
-];
 
 export default function SummaryScreen({ navigation, route }: Props) {
   const { receipts, claims, mode } = route.params;
@@ -33,7 +29,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
   }, []);
 
   function personColor(index: number) {
-    return COLORS[index % COLORS.length];
+    return PERSON_COLORS[index % PERSON_COLORS.length];
   }
 
   return (
@@ -45,9 +41,11 @@ export default function SummaryScreen({ navigation, route }: Props) {
         {summaries.map((person, idx) => (
           <View key={person.name} style={styles.personCard}>
             <View style={[styles.personHeader, { backgroundColor: personColor(idx) }]}>
-              <Text style={styles.personInitial}>
-                {person.name.slice(0, 1).toUpperCase()}
-              </Text>
+              <View style={[styles.personInitialBox]}>
+                <Text style={styles.personInitial}>
+                  {person.name.slice(0, 1).toUpperCase()}
+                </Text>
+              </View>
               <View style={styles.personHeaderInfo}>
                 <Text style={styles.personName}>{person.name}</Text>
                 <Text style={styles.personTotal}>
@@ -99,13 +97,13 @@ export default function SummaryScreen({ navigation, route }: Props) {
 
         <View style={styles.receiptSummary}>
           <Text style={styles.receiptSummaryTitle}>
-            Receipt total {receipts.length > 1 ? `(${receipts.length} receipts)` : ''}
+            Receipt total{receipts.length > 1 ? ` (${receipts.length} receipts)` : ''}
           </Text>
 
           {receipts.length > 1 && receipts.map((r, i) => (
-            <View key={i} style={styles.ticketRow}>
-              <Text style={styles.ticketLabel}>Receipt {i + 1}</Text>
-              <Text style={styles.ticketValue}>{r.currency} {r.total.toFixed(2)}</Text>
+            <View key={i} style={styles.receiptRow}>
+              <Text style={styles.receiptLabel}>Receipt {i + 1}</Text>
+              <Text style={styles.receiptValue}>{r.currency} {r.total.toFixed(2)}</Text>
             </View>
           ))}
 
@@ -138,7 +136,7 @@ export default function SummaryScreen({ navigation, route }: Props) {
           onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}
           activeOpacity={0.85}
         >
-          <Text style={styles.homeButtonText}>Scan new receipt</Text>
+          <Text style={styles.homeButtonText}>Done</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -146,17 +144,17 @@ export default function SummaryScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f9ff' },
+  safe: { flex: 1, backgroundColor: C.bg },
   container: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 28, fontWeight: '700', color: '#1a1a2e', marginBottom: 4 },
-  subtitle: { fontSize: 15, color: '#666', marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '700', color: C.text, marginBottom: 4 },
+  subtitle: { fontSize: 14, color: C.textMuted, marginBottom: 24 },
   personCard: {
-    borderRadius: 20,
+    borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -166,79 +164,71 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
   },
-  personInitial: {
+  personInitialBox: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    textAlign: 'center',
-    lineHeight: 44,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  personInitial: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: C.white,
   },
   personHeaderInfo: { flex: 1 },
-  personName: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  personTotal: { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: 2 },
-  personBody: { backgroundColor: '#fff', padding: 16 },
+  personName: { fontSize: 17, fontWeight: '700', color: C.white },
+  personTotal: { fontSize: 22, fontWeight: '800', color: C.white, marginTop: 2 },
+  personBody: { backgroundColor: C.card, padding: 16 },
   lineItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: C.border,
   },
-  lineItemName: { fontSize: 14, color: '#444', flex: 1, marginRight: 10 },
-  lineItemPrice: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
+  lineItemName: { fontSize: 14, color: C.text, flex: 1, marginRight: 10 },
+  lineItemPrice: { fontSize: 14, fontWeight: '600', color: C.text },
   taxLine: { borderBottomWidth: 0 },
-  taxLabel: { fontSize: 13, color: '#999', fontStyle: 'italic' },
-  taxValue: { fontSize: 13, color: '#999', fontStyle: 'italic' },
+  taxLabel: { fontSize: 13, color: C.textMuted, fontStyle: 'italic' },
+  taxValue: { fontSize: 13, color: C.textMuted, fontStyle: 'italic' },
   totalLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 10,
     marginTop: 4,
     borderTopWidth: 2,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: C.border,
   },
-  totalLabel: { fontSize: 15, fontWeight: '700', color: '#1a1a2e' },
+  totalLabel: { fontSize: 15, fontWeight: '700', color: C.text },
   totalValue: { fontSize: 18, fontWeight: '800' },
   receiptSummary: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    backgroundColor: C.card,
+    borderRadius: 18,
     padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  receiptSummaryTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', marginBottom: 12 },
-  ticketRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 3,
-  },
-  ticketLabel: { fontSize: 13, color: '#888' },
-  ticketValue: { fontSize: 13, color: '#888', fontWeight: '500' },
-  divider: { height: 1, backgroundColor: '#f0f0f0', marginVertical: 10 },
+  receiptSummaryTitle: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 12 },
+  divider: { height: 1, backgroundColor: C.border, marginVertical: 10 },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  receiptLabel: { fontSize: 14, color: '#666' },
-  receiptValue: { fontSize: 14, color: '#1a1a2e', fontWeight: '500' },
-  receiptTotalRow: { borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 8, paddingTop: 12 },
-  receiptTotalLabel: { fontSize: 16, fontWeight: '700', color: '#1a1a2e' },
-  receiptTotalValue: { fontSize: 16, fontWeight: '800', color: '#667eea' },
+  receiptLabel: { fontSize: 14, color: C.textMuted },
+  receiptValue: { fontSize: 14, color: C.text, fontWeight: '500' },
+  receiptTotalRow: { borderTopWidth: 1, borderTopColor: C.border, marginTop: 8, paddingTop: 12 },
+  receiptTotalLabel: { fontSize: 16, fontWeight: '700', color: C.text },
+  receiptTotalValue: { fontSize: 16, fontWeight: '800', color: C.primary },
   homeButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: C.primary,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
-    shadowColor: '#667eea',
+    shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
   },
-  homeButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  homeButtonText: { color: C.white, fontSize: 17, fontWeight: '700' },
 });

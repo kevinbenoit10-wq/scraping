@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -11,23 +12,28 @@ import ClaimScreen from './src/screens/ClaimScreen';
 import SummaryScreen from './src/screens/SummaryScreen';
 import TableModeHostScreen from './src/screens/TableModeHostScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
+import SplashAnimation from './src/components/SplashAnimation';
 import { RootStackParamList } from './src/types';
+import { C } from './src/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
+
   return (
     <SafeAreaProvider>
       <ReceiptProvider>
         <NavigationContainer>
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
           <Stack.Navigator
             initialRouteName="Home"
             screenOptions={{
-              headerStyle: { backgroundColor: '#f8f9ff' },
-              headerTintColor: '#667eea',
-              headerTitleStyle: { fontWeight: '700' },
+              headerStyle: { backgroundColor: C.bg },
+              headerTintColor: C.primary,
+              headerTitleStyle: { fontWeight: '700', color: C.text },
               headerBackTitleVisible: false,
+              contentStyle: { backgroundColor: C.bg },
             }}
           >
             <Stack.Screen
@@ -62,6 +68,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        {!splashDone && <SplashAnimation onDone={() => setSplashDone(true)} />}
       </ReceiptProvider>
     </SafeAreaProvider>
   );
