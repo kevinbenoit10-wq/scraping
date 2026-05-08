@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, HistoryEntry } from '../types';
 import { getHistory, togglePayment, deleteHistoryEntry } from '../services/historyService';
+import { C } from '../theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'History'>;
@@ -54,7 +55,6 @@ export default function HistoryScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyTitle}>No history yet</Text>
           <Text style={styles.emptySubtitle}>Your past splits will appear here</Text>
         </View>
@@ -66,7 +66,7 @@ export default function HistoryScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />}
       >
         <Text style={styles.title}>History</Text>
         <Text style={styles.subtitle}>{history.length} split{history.length !== 1 ? 's' : ''}</Text>
@@ -84,9 +84,11 @@ export default function HistoryScreen({ navigation }: Props) {
                 activeOpacity={0.8}
               >
                 <View>
-                  <Text style={styles.cardMode}>
-                    {entry.mode === 'table-mode' ? '🍽️ Table Mode' : '📸 Scan & Split'}
-                  </Text>
+                  <View style={[styles.modeBadge, entry.mode === 'table-mode' && styles.modeBadgeTable]}>
+                    <Text style={[styles.modeText, entry.mode === 'table-mode' && styles.modeTextTable]}>
+                      {entry.mode === 'table-mode' ? 'Table Mode' : 'Scan & Split'}
+                    </Text>
+                  </View>
                   <Text style={styles.cardDate}>{formatDate(entry.date)}</Text>
                 </View>
                 <View style={styles.cardRight}>
@@ -95,7 +97,7 @@ export default function HistoryScreen({ navigation }: Props) {
                   </Text>
                   {allPaid ? (
                     <View style={styles.allPaidBadge}>
-                      <Text style={styles.allPaidText}>All settled ✓</Text>
+                      <Text style={styles.allPaidText}>Settled</Text>
                     </View>
                   ) : (
                     <View style={styles.unpaidBadge}>
@@ -122,7 +124,7 @@ export default function HistoryScreen({ navigation }: Props) {
                       </View>
                       <View style={[styles.toggle, payment.paid && styles.togglePaid]}>
                         <Text style={[styles.toggleText, payment.paid && styles.toggleTextPaid]}>
-                          {payment.paid ? '✓ Paid' : 'Unpaid'}
+                          {payment.paid ? 'Paid' : 'Unpaid'}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -145,24 +147,20 @@ export default function HistoryScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f9ff' },
+  safe: { flex: 1, backgroundColor: C.bg },
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { fontSize: 52, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a2e', marginBottom: 6 },
-  emptySubtitle: { fontSize: 14, color: '#999' },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 6 },
+  emptySubtitle: { fontSize: 14, color: C.textMuted },
   container: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 28, fontWeight: '700', color: '#1a1a2e', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#999', marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: '700', color: C.text, marginBottom: 4 },
+  subtitle: { fontSize: 14, color: C.textMuted, marginBottom: 20 },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    marginBottom: 12,
+    backgroundColor: C.card,
+    borderRadius: 18,
+    marginBottom: 10,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -170,27 +168,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  cardMode: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
-  cardDate: { fontSize: 12, color: '#999', marginTop: 2 },
+  modeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: C.primaryLight,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 4,
+  },
+  modeBadgeTable: { backgroundColor: '#E8F0FE' },
+  modeText: { fontSize: 12, fontWeight: '600', color: C.primary },
+  modeTextTable: { color: '#1565C0' },
+  cardDate: { fontSize: 12, color: C.textMuted },
   cardRight: { alignItems: 'flex-end', gap: 4 },
-  cardTotal: { fontSize: 16, fontWeight: '800', color: '#667eea' },
+  cardTotal: { fontSize: 16, fontWeight: '800', color: C.primary },
   allPaidBadge: {
-    backgroundColor: '#e8f5e9',
+    backgroundColor: C.successLight,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
-  allPaidText: { fontSize: 11, color: '#2ecc71', fontWeight: '600' },
+  allPaidText: { fontSize: 11, color: C.success, fontWeight: '600' },
   unpaidBadge: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: C.warningLight,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
-  unpaidText: { fontSize: 11, color: '#e67e22', fontWeight: '600' },
+  unpaidText: { fontSize: 11, color: C.warning, fontWeight: '600' },
   cardBody: {
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: C.border,
     padding: 16,
   },
   paymentRow: {
@@ -199,19 +207,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f8f8f8',
+    borderBottomColor: C.bg,
   },
-  paymentName: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
-  paymentAmount: { fontSize: 13, color: '#888', marginTop: 2 },
+  paymentName: { fontSize: 14, fontWeight: '600', color: C.text },
+  paymentAmount: { fontSize: 13, color: C.textMuted, marginTop: 2 },
   toggle: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: C.border,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
-  togglePaid: { backgroundColor: '#e8f5e9' },
-  toggleText: { fontSize: 13, color: '#aaa', fontWeight: '600' },
-  toggleTextPaid: { color: '#2ecc71' },
+  togglePaid: { backgroundColor: C.successLight },
+  toggleText: { fontSize: 13, color: C.textMuted, fontWeight: '600' },
+  toggleTextPaid: { color: C.success },
   deleteBtn: { marginTop: 14, alignItems: 'center' },
-  deleteBtnText: { fontSize: 13, color: '#e74c3c' },
+  deleteBtnText: { fontSize: 13, color: C.error },
 });

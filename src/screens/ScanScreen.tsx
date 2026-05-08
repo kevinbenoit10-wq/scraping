@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, Receipt } from '../types';
 import { parseReceiptImage } from '../services/receiptParser';
+import { C } from '../theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Scan'>;
@@ -107,7 +108,7 @@ export default function ScanScreen({ navigation, route }: Props) {
                 <View style={styles.ticketInfo}>
                   <Text style={styles.ticketTitle}>Receipt {index + 1}</Text>
                   <Text style={styles.ticketMeta}>
-                    {ticket.receipt.items.length} items • {ticket.receipt.currency} {ticket.receipt.total.toFixed(2)}
+                    {ticket.receipt.items.length} items · {ticket.receipt.currency} {ticket.receipt.total.toFixed(2)}
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => removeTicket(index)} style={styles.removeBtn}>
@@ -130,7 +131,6 @@ export default function ScanScreen({ navigation, route }: Props) {
           </View>
         ) : (
           <View style={styles.placeholderWrapper}>
-            <Text style={styles.placeholderIcon}>📄</Text>
             <Text style={styles.placeholderText}>
               {scannedTickets.length > 0 ? 'Add another receipt?' : 'No photo selected yet'}
             </Text>
@@ -139,11 +139,9 @@ export default function ScanScreen({ navigation, route }: Props) {
 
         <View style={styles.buttonRow}>
           <TouchableOpacity style={[styles.sourceButton, styles.cameraButton]} onPress={pickFromCamera} activeOpacity={0.85}>
-            <Text style={styles.sourceIcon}>📷</Text>
             <Text style={styles.sourceButtonText}>Camera</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.sourceButton, styles.galleryButton]} onPress={pickFromGallery} activeOpacity={0.85}>
-            <Text style={styles.sourceIcon}>🖼️</Text>
             <Text style={styles.sourceButtonText}>Gallery</Text>
           </TouchableOpacity>
         </View>
@@ -163,7 +161,7 @@ export default function ScanScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.analyzeButtonText}>Analyze receipt ✨</Text>
+              <Text style={styles.analyzeButtonText}>Analyze receipt</Text>
             )}
           </TouchableOpacity>
         )}
@@ -181,30 +179,27 @@ export default function ScanScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f9ff' },
+  safe: { flex: 1, backgroundColor: C.bg },
   container: { padding: 24, alignItems: 'center' },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: C.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
-    color: '#666',
+    fontSize: 14,
+    color: C.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
   },
-  ticketsSection: {
-    width: '100%',
-    marginBottom: 16,
-  },
+  ticketsSection: { width: '100%', marginBottom: 16 },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#888',
+    color: C.textMuted,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -212,93 +207,93 @@ const styles = StyleSheet.create({
   ticketRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: C.card,
     borderRadius: 14,
     padding: 10,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   ticketThumb: {
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#eee',
+    backgroundColor: C.border,
   },
   ticketInfo: { flex: 1, marginLeft: 12 },
-  ticketTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a2e' },
-  ticketMeta: { fontSize: 12, color: '#888', marginTop: 2 },
+  ticketTitle: { fontSize: 14, fontWeight: '700', color: C.text },
+  ticketMeta: { fontSize: 12, color: C.textMuted, marginTop: 2 },
   removeBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#fee2e2',
+    backgroundColor: C.errorLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  removeBtnText: { color: '#e74c3c', fontSize: 12, fontWeight: '700' },
+  removeBtnText: { color: C.error, fontSize: 12, fontWeight: '700' },
   placeholderWrapper: {
     width: '100%',
-    height: 180,
-    backgroundColor: '#e8eaf6',
-    borderRadius: 20,
+    height: 160,
+    backgroundColor: C.card,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#c5cae9',
+    borderColor: C.border,
     borderStyle: 'dashed',
     marginBottom: 20,
   },
-  placeholderIcon: { fontSize: 40, marginBottom: 8 },
-  placeholderText: { fontSize: 14, color: '#9e9e9e' },
+  placeholderText: { fontSize: 14, color: C.textMuted },
   previewWrapper: { width: '100%', marginBottom: 20, borderRadius: 20, overflow: 'hidden' },
-  preview: { width: '100%', height: 260, backgroundColor: '#eee', borderRadius: 20 },
+  preview: { width: '100%', height: 260, backgroundColor: C.border, borderRadius: 20 },
   retakeButton: {
     marginTop: 10,
     alignSelf: 'center',
     paddingVertical: 8,
     paddingHorizontal: 20,
-    backgroundColor: '#e8eaf6',
+    backgroundColor: C.primaryLight,
     borderRadius: 20,
   },
-  retakeText: { color: '#5c6bc0', fontWeight: '600' },
+  retakeText: { color: C.primary, fontWeight: '600' },
   buttonRow: { flexDirection: 'row', gap: 12, marginBottom: 20, width: '100%' },
-  sourceButton: { flex: 1, paddingVertical: 16, borderRadius: 16, alignItems: 'center' },
-  cameraButton: { backgroundColor: '#667eea' },
-  galleryButton: { backgroundColor: '#764ba2' },
-  sourceIcon: { fontSize: 26, marginBottom: 4 },
-  sourceButtonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  sourceButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  cameraButton: { backgroundColor: C.primary },
+  galleryButton: { backgroundColor: C.primaryDark },
+  sourceButtonText: { color: C.white, fontWeight: '600', fontSize: 15 },
   analyzeButton: {
-    backgroundColor: '#5c6bc0',
+    backgroundColor: C.primary,
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 30,
     width: '100%',
     alignItems: 'center',
-    shadowColor: '#5c6bc0',
+    shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
     marginBottom: 12,
   },
-  analyzeButtonDisabled: { opacity: 0.7 },
-  analyzeButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  analyzeButtonDisabled: { opacity: 0.6 },
+  analyzeButtonText: { color: C.white, fontSize: 17, fontWeight: '700' },
   loadingRow: { flexDirection: 'row', alignItems: 'center' },
   continueButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: C.primary,
     paddingVertical: 16,
     borderRadius: 30,
     width: '100%',
     alignItems: 'center',
-    shadowColor: '#667eea',
+    shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
   },
-  continueButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  continueButtonText: { color: C.white, fontSize: 17, fontWeight: '700' },
 });

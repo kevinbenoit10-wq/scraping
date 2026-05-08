@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,53 +14,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, ItemClaim, ReceiptItem } from '../types';
-import { useReceipt } from '../context/ReceiptContext';
 import { mergeReceipts } from '../services/receiptParser';
+import { C, PERSON_COLORS } from '../theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Claim'>;
   route: RouteProp<RootStackParamList, 'Claim'>;
 };
 
-const COLORS = [
-  '#667eea', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
-  '#1abc9c', '#e67e22', '#3498db', '#e91e63', '#00bcd4',
-];
-
-type ListRow =
-  | { type: 'header'; ticketIndex: number; total: number; currency: string }
-  | { type: 'item'; item: ReceiptItem };
-
 export default function ClaimScreen({ navigation, route }: Props) {
-  const { receipts } = route.params;
-  const { setClaims } = useReceipt();
-
-  const receipt = useMemo(() => mergeReceipts(receipts), [receipts]);
+  const receipt = mergeReceipts(route.params.receipts);
 
   const [personName, setPersonName] = useState('');
   const [savedPersons, setSavedPersons] = useState<string[]>([]);
   const [activePerson, setActivePerson] = useState<string | null>(null);
   const [claims, setLocalClaims] = useState<ItemClaim[]>([]);
 
-  const listData: ListRow[] = useMemo(() => {
-    const rows: ListRow[] = [];
-    for (let ti = 0; ti < receipts.length; ti++) {
-      rows.push({
-        type: 'header',
-        ticketIndex: ti,
-        total: receipts[ti].total,
-        currency: receipts[ti].currency,
-      });
-      receipt.items
-        .filter((item) => item.ticketIndex === ti)
-        .forEach((item) => rows.push({ type: 'item', item }));
-    }
-    return rows;
-  }, [receipt, receipts]);
-
   function personColor(name: string) {
-    const idx = savedPersons.indexOf(name) % COLORS.length;
-    return COLORS[idx >= 0 ? idx : 0];
+    const idx = savedPersons.indexOf(name) % PERSON_COLORS.length;
+    return PERSON_COLORS[idx >= 0 ? idx : 0];
   }
 
   function addPerson() {
@@ -107,8 +79,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
       Alert.alert('No selections', 'Please select at least one item.');
       return;
     }
-    setClaims(claims);
-    navigation.navigate('Summary', { receipts, claims });
+    navigation.navigate('Summary', { receipts: route.params.receipts, claims, mode: 'scan-split' });
   }
 
   function renderClaimBadges(itemId: string) {
@@ -126,19 +97,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
     );
   }
 
-  function renderRow({ item: row }: { item: ListRow }) {
-    if (row.type === 'header') {
-      return (
-        <View style={styles.ticketHeader}>
-          <Text style={styles.ticketHeaderText}>Bon {row.ticketIndex + 1}</Text>
-          <Text style={styles.ticketHeaderTotal}>
-            {row.currency} {row.total.toFixed(2)}
-          </Text>
-        </View>
-      );
-    }
-
-    const { item } = row;
+  function renderItem({ item }: { item: ReceiptItem }) {
     const myPortions = activePerson ? claimedPortions(item.id, activePerson) : 0;
     const totalClaimed = totalClaimedPortions(item.id);
     const remaining = item.quantity - totalClaimed;
@@ -199,7 +158,7 @@ export default function ClaimScreen({ navigation, route }: Props) {
               onChangeText={setPersonName}
               onSubmitEditing={addPerson}
               returnKeyType="done"
-              placeholderTextColor="#aaa"
+              placeholderTextColor={C.textMuted}
             />
             <TouchableOpacity style={styles.addBtn} onPress={addPerson}>
               <Text style={styles.addBtnText}>+</Text>
@@ -226,17 +185,15 @@ export default function ClaimScreen({ navigation, route }: Props) {
         {receipt.deliveryFee > 0 && (
           <View style={styles.deliveryBanner}>
             <Text style={styles.deliveryBannerText}>
-              🛵 Delivery fee {receipt.currency} {receipt.deliveryFee.toFixed(2)} will be split equally
+              Delivery fee {receipt.currency} {receipt.deliveryFee.toFixed(2)} will be split equally
             </Text>
           </View>
         )}
 
         <FlatList
-          data={listData}
-          keyExtractor={(row, index) =>
-            row.type === 'header' ? `header-${row.ticketIndex}` : `item-${row.item.id}-${index}`
-          }
-          renderItem={renderRow}
+          data={receipt.items}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
           contentContainerStyle={styles.list}
           style={styles.flex}
         />
@@ -252,103 +209,92 @@ export default function ClaimScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f8f9ff' },
+  safe: { flex: 1, backgroundColor: C.bg },
   flex: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  title: { fontSize: 26, fontWeight: '700', color: '#1a1a2e' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  title: { fontSize: 24, fontWeight: '700', color: C.text },
+  subtitle: { fontSize: 14, color: C.textMuted, marginTop: 4 },
   personSection: { paddingHorizontal: 20, paddingBottom: 12 },
   inputRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   input: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: C.card,
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    color: '#1a1a2e',
+    borderColor: C.border,
+    color: C.text,
   },
   addBtn: {
     width: 48,
     height: 48,
-    backgroundColor: '#667eea',
+    backgroundColor: C.primary,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: { color: '#fff', fontSize: 24, fontWeight: '300' },
+  addBtnText: { color: C.white, fontSize: 24, fontWeight: '300' },
   personRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  personChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, opacity: 0.7 },
-  personChipActive: { opacity: 1, transform: [{ scale: 1.05 }] },
-  personChipText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  list: { paddingHorizontal: 20, paddingBottom: 16 },
-  ticketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#667eea',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 8,
-    marginTop: 4,
+  personChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    opacity: 0.65,
   },
-  ticketHeaderText: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  ticketHeaderTotal: { fontSize: 14, fontWeight: '700', color: 'rgba(255,255,255,0.9)' },
+  personChipActive: { opacity: 1, transform: [{ scale: 1.05 }] },
+  personChipText: { color: C.white, fontWeight: '600', fontSize: 14 },
+  list: { paddingHorizontal: 20, paddingBottom: 16 },
   itemCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: C.card,
+    borderRadius: 14,
     padding: 14,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   itemHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   itemInfo: { flex: 1, marginRight: 12 },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#1a1a2e' },
-  itemMeta: { fontSize: 13, color: '#888', marginTop: 2 },
+  itemName: { fontSize: 15, fontWeight: '600', color: C.text },
+  itemMeta: { fontSize: 13, color: C.textMuted, marginTop: 2 },
   counter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   counterBtn: {
     width: 32,
     height: 32,
-    backgroundColor: '#667eea',
+    backgroundColor: C.primary,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  counterBtnDisabled: { backgroundColor: '#e0e0e0' },
-  counterBtnText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  counterValue: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', minWidth: 20, textAlign: 'center' },
+  counterBtnDisabled: { backgroundColor: C.border },
+  counterBtnText: { color: C.white, fontSize: 18, fontWeight: '600' },
+  counterValue: { fontSize: 16, fontWeight: '700', color: C.text, minWidth: 20, textAlign: 'center' },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  badgeText: { color: C.white, fontSize: 12, fontWeight: '600' },
   deliveryBanner: {
     marginHorizontal: 20,
     marginBottom: 8,
-    backgroundColor: '#fff3e0',
+    backgroundColor: C.warningLight,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#f39c12',
+    borderLeftColor: C.warning,
   },
-  deliveryBannerText: { fontSize: 13, color: '#e67e22', fontWeight: '600' },
-  footer: { padding: 20, backgroundColor: '#f8f9ff' },
+  deliveryBannerText: { fontSize: 13, color: C.warning, fontWeight: '600' },
+  footer: { padding: 20, backgroundColor: C.bg },
   continueButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: C.primary,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: 'center',
-    shadowColor: '#667eea',
+    shadowColor: C.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 5,
   },
-  continueButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  continueButtonText: { color: C.white, fontSize: 17, fontWeight: '700' },
 });
