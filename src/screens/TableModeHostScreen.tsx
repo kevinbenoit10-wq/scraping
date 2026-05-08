@@ -35,7 +35,7 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
-  const joinUrl = sessionCode ? `https://splitr.eu/join/${sessionCode}` : '';
+  const joinUrl = sessionCode ? `${API_URL}/join/${sessionCode}` : '';
 
   useEffect(() => {
     const socket = io(API_URL, { transports: ['websocket'] });
@@ -107,7 +107,7 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
           <QRCode value={joinUrl} size={200} color="#1a1a2e" backgroundColor="#fff" />
           <Text style={styles.codeLabel}>Session code</Text>
           <Text style={styles.code}>{sessionCode}</Text>
-          <Text style={styles.codeHint}>splitr.eu/join/{sessionCode}</Text>
+          <Text style={styles.codeHint}>api.splitr.eu/join/{sessionCode}</Text>
         </View>
 
         <View style={styles.progressCard}>
