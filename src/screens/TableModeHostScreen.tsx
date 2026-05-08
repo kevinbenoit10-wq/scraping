@@ -15,7 +15,7 @@ import { io, Socket } from 'socket.io-client';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, ItemClaim } from '../types';
-import { mergeReceipts } from '../services/receiptParser';
+import { mergeReceipts, expandItemsByQuantity } from '../services/receiptParser';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 
@@ -28,7 +28,7 @@ type Claims = Record<string, string>;
 
 export default function TableModeHostScreen({ navigation, route }: Props) {
   const { receipts } = route.params;
-  const receipt = mergeReceipts(receipts);
+  const receipt = expandItemsByQuantity(mergeReceipts(receipts));
 
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [claims, setClaims] = useState<Claims>({});
@@ -93,7 +93,7 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
     socketRef.current?.disconnect();
 
     navigation.navigate('Summary', {
-      receipts,
+      receipts: [receipt],
       claims: itemClaims,
       mode: 'table-mode',
     });
