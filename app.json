@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": false,
       "requireFullScreen": true,
-      "bundleIdentifier": "eu.splitr.app",
+      "bundleIdentifier": "eu.splitr.bills",
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access to scan your receipt.",
         "NSPhotoLibraryUsageDescription": "We need photo library access to import receipt photos."
