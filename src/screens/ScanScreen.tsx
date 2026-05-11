@@ -36,7 +36,7 @@ export default function ScanScreen({ navigation, route }: Props) {
     }
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: 'images',
-      quality: 0.4,
+      quality: 0.2,
       base64: true,
     });
     if (!result.canceled && result.assets[0]) {
@@ -53,7 +53,7 @@ export default function ScanScreen({ navigation, route }: Props) {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
-      quality: 0.4,
+      quality: 0.2,
       base64: true,
     });
     if (!result.canceled && result.assets[0]) {
