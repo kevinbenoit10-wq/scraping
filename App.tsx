@@ -19,7 +19,7 @@ import { C } from './src/theme';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashDone, setSplashDone] = useState(true);
 
   return (
     <SafeAreaProvider>
