@@ -9,6 +9,9 @@ export default function SplashAnimation({ onDone }: { onDone: () => void }) {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    // Safety fallback: always call onDone after 2.5s even if animation fails
+    const fallback = setTimeout(() => onDone(), 2500);
+
     const timer = setTimeout(() => {
       Animated.parallel([
         Animated.timing(translateX, {
@@ -22,10 +25,10 @@ export default function SplashAnimation({ onDone }: { onDone: () => void }) {
           delay: 180,
           useNativeDriver: true,
         }),
-      ]).start(() => onDone());
+      ]).start(() => { clearTimeout(fallback); onDone(); });
     }, 900);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); clearTimeout(fallback); };
   }, []);
 
   return (
