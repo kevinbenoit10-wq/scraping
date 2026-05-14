@@ -7,6 +7,36 @@
  * STEP 2: Replace the server creation and add all code below.
  *         Find the line: const app = express();
  *         Replace the whole server setup with the code below.
+ *
+ * ─── IMPORTANT: /parse-receipt model update ───────────────────────────────────
+ * Claude 3.x model IDs are deprecated. Update your /parse-receipt route on the
+ * VPS to use: model: 'claude-sonnet-4-6'
+ *
+ * The route should look like this:
+ *
+ *   app.post('/parse-receipt', rateLimiter, async (req, res) => {
+ *     const { image, secret } = req.body;
+ *     if (secret !== process.env.APP_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+ *     if (!image) return res.status(400).json({ error: 'Missing image' });
+ *     try {
+ *       const response = await anthropic.messages.create({
+ *         model: 'claude-sonnet-4-6',   // ← update this line
+ *         max_tokens: 1024,
+ *         messages: [{
+ *           role: 'user',
+ *           content: [
+ *             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } },
+ *             { type: 'text', text: 'Parse this receipt. Return ONLY valid JSON: { "items": [{ "name": string, "quantity": number, "unitPrice": number, "totalPrice": number }], "subtotal": number, "tax": number, "deliveryFee": number, "total": number, "currency": string }' },
+ *           ],
+ *         }],
+ *       });
+ *       const json = JSON.parse(response.content[0].text.match(/\{[\s\S]*\}/)[0]);
+ *       res.json(json);
+ *     } catch (err) {
+ *       res.status(500).json({ error: err.message });
+ *     }
+ *   });
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
 // ─── REPLACE from "const app = express();" until "app.listen(...)" ────────────
