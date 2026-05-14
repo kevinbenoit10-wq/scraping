@@ -4,11 +4,22 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 const APP_SECRET = process.env.EXPO_PUBLIC_APP_SECRET ?? '';
 
 export async function parseReceiptImage(base64Image: string): Promise<Receipt> {
-  const response = await fetch(`${API_URL}/parse-receipt`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: base64Image, secret: APP_SECRET }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/parse-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64Image, secret: APP_SECRET }),
+      signal: controller.signal,
+    });
+  } catch (e: any) {
+    throw new Error(e.name === 'AbortError' ? 'Request timed out, try again' : e.message);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
