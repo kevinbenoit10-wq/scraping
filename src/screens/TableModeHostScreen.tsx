@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
-import { io, Socket } from 'socket.io-client';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, ItemClaim } from '../types';
@@ -37,13 +36,15 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
   const [connected, setConnected] = useState(false);
   const [hostName, setHostName] = useState('');
   const [hostJoined, setHostJoined] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<any>(null);
 
   const joinUrl = sessionCode ? `https://splitr.eu/join/${sessionCode}` : '';
 
   useEffect(() => {
-    const socket = io(API_URL, { transports: ['websocket', 'polling'] });
-    socketRef.current = socket;
+    let socket: any;
+    import('socket.io-client').then(({ io }) => {
+      socket = io(API_URL, { transports: ['websocket', 'polling'] });
+      socketRef.current = socket;
 
     socket.on('connect', () => {
       setConnected(true);
@@ -62,9 +63,10 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
       setParticipants(newParticipants);
     });
 
-    socket.on('disconnect', () => setConnected(false));
+      socket.on('disconnect', () => setConnected(false));
+    });
 
-    return () => { socket.disconnect(); };
+    return () => { socket?.disconnect(); };
   }, []);
 
   function handleJoinAsHost() {
