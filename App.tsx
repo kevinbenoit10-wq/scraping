@@ -20,12 +20,13 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: string | null }> {
   state = { error: null };
-  static getDerivedStateFromError(e: Error) { return { error: e.message }; }
+  static getDerivedStateFromError(e: Error) { return { error: e.message || 'Unknown error' }; }
   render() {
-    if (this.state.error) {
+    if (this.state.error !== null) {
       return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <Text style={{ fontSize: 16, color: '#333', textAlign: 'center' }}>{this.state.error}</Text>
+        <View style={{ flex: 1, backgroundColor: '#c0392b', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ fontSize: 18, color: '#fff', fontWeight: 'bold', marginBottom: 12 }}>Crash caught:</Text>
+          <Text style={{ fontSize: 14, color: '#fff', textAlign: 'center' }}>{this.state.error || 'Unknown error'}</Text>
         </View>
       );
     }
