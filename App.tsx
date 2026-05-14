@@ -10,8 +10,16 @@ import HomeScreen from './src/screens/HomeScreen';
 import ScanScreen from './src/screens/ScanScreen';
 import ClaimScreen from './src/screens/ClaimScreen';
 import SummaryScreen from './src/screens/SummaryScreen';
-import TableModeHostScreen from './src/screens/TableModeHostScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
+
+function LazyTableModeHost(props: any) {
+  const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(null);
+  React.useEffect(() => {
+    import('./src/screens/TableModeHostScreen').then(m => setComp(() => m.default));
+  }, []);
+  if (!Comp) return null;
+  return <Comp {...props} />;
+}
 import SplashAnimation from './src/components/SplashAnimation';
 import { RootStackParamList } from './src/types';
 import { C } from './src/theme';
@@ -75,7 +83,7 @@ export default function App() {
             />
             <Stack.Screen
               name="TableModeHost"
-              component={TableModeHostScreen}
+              component={LazyTableModeHost}
               options={{ title: 'Table Mode', headerBackVisible: false }}
             />
             <Stack.Screen
