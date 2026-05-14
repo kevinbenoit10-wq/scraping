@@ -13,6 +13,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "cache": {
+        "disabled": true
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.splitr.eu",
         "EXPO_PUBLIC_APP_SECRET": "mijngeheimesecret123"
