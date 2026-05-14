@@ -6,23 +6,25 @@ import { StatusBar } from 'expo-status-bar';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ReceiptProvider } from './src/context/ReceiptContext';
-import HomeScreen from './src/screens/HomeScreen';
-import ScanScreen from './src/screens/ScanScreen';
-import ClaimScreen from './src/screens/ClaimScreen';
-import SummaryScreen from './src/screens/SummaryScreen';
-import HistoryScreen from './src/screens/HistoryScreen';
-
-function LazyTableModeHost(props: any) {
-  const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(null);
-  React.useEffect(() => {
-    import('./src/screens/TableModeHostScreen').then(m => setComp(() => m.default));
-  }, []);
-  if (!Comp) return null;
-  return <Comp {...props} />;
-}
 import SplashAnimation from './src/components/SplashAnimation';
 import { RootStackParamList } from './src/types';
 import { C } from './src/theme';
+
+function lazy(loader: () => Promise<{ default: React.ComponentType<any> }>) {
+  return function LazyScreen(props: any) {
+    const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(null);
+    React.useEffect(() => { loader().then(m => setComp(() => m.default)); }, []);
+    if (!Comp) return null;
+    return <Comp {...props} />;
+  };
+}
+
+const HomeScreen = lazy(() => import('./src/screens/HomeScreen'));
+const ScanScreen = lazy(() => import('./src/screens/ScanScreen'));
+const ClaimScreen = lazy(() => import('./src/screens/ClaimScreen'));
+const SummaryScreen = lazy(() => import('./src/screens/SummaryScreen'));
+const TableModeHostScreen = lazy(() => import('./src/screens/TableModeHostScreen'));
+const HistoryScreen = lazy(() => import('./src/screens/HistoryScreen'));
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,7 +85,7 @@ export default function App() {
             />
             <Stack.Screen
               name="TableModeHost"
-              component={LazyTableModeHost}
+              component={TableModeHostScreen}
               options={{ title: 'Table Mode', headerBackVisible: false }}
             />
             <Stack.Screen
