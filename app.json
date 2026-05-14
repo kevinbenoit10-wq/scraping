@@ -38,10 +38,10 @@
     },
     "plugins": [
       [
-        "expo-image-picker",
+        "react-native-image-picker",
         {
-          "photosPermission": "We need photo library access to import receipt photos.",
-          "cameraPermission": "We need camera access to scan your receipt."
+          "photoLibraryUsageDescription": "We need photo library access to import receipt photos.",
+          "cameraPermissionText": "We need camera access to scan your receipt."
         }
       ]
     ],

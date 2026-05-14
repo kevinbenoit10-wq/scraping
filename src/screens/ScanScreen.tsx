@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, Receipt } from '../types';
@@ -28,38 +28,22 @@ export default function ScanScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(false);
   const [scannedTickets, setScannedTickets] = useState<{ receipt: Receipt; imageUri: string }[]>([]);
 
-  async function pickFromCamera() {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'Camera access is needed to scan a receipt.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: 'images',
-      quality: 0.4,
-      base64: true,
+  function pickFromCamera() {
+    launchCamera({ mediaType: 'photo', quality: 0.4, includeBase64: true }, (response) => {
+      if (!response.didCancel && !response.errorCode && response.assets?.[0]) {
+        setImageUri(response.assets[0].uri ?? null);
+        setImageBase64(response.assets[0].base64 ?? null);
+      }
     });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64 ?? null);
-    }
   }
 
-  async function pickFromGallery() {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'Gallery access is needed to import a photo.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 0.4,
-      base64: true,
+  function pickFromGallery() {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.4, includeBase64: true }, (response) => {
+      if (!response.didCancel && !response.errorCode && response.assets?.[0]) {
+        setImageUri(response.assets[0].uri ?? null);
+        setImageBase64(response.assets[0].base64 ?? null);
+      }
     });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64 ?? null);
-    }
   }
 
   async function analyzeReceipt() {
