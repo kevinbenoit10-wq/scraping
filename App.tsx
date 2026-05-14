@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, Component } from 'react';
+import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -18,10 +18,26 @@ import { C } from './src/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: string | null }> {
+  state = { error: null };
+  static getDerivedStateFromError(e: Error) { return { error: e.message }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ fontSize: 16, color: '#333', textAlign: 'center' }}>{this.state.error}</Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
 
   return (
+    <ErrorBoundary>
     <SafeAreaProvider>
       <ReceiptProvider>
         <NavigationContainer>
@@ -71,5 +87,6 @@ export default function App() {
         {!splashDone && <SplashAnimation onDone={() => setSplashDone(true)} />}
       </ReceiptProvider>
     </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
