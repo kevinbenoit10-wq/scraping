@@ -17,7 +17,8 @@
       "bundleIdentifier": "eu.splitr.bills",
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access to scan your receipt.",
-        "NSPhotoLibraryUsageDescription": "We need photo library access to import receipt photos."
+        "NSPhotoLibraryUsageDescription": "We need photo library access to import receipt photos.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -27,8 +28,9 @@
       },
       "package": "eu.splitr.app",
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -42,6 +44,11 @@
           "cameraPermission": "We need camera access to scan your receipt."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "133ea419-c336-4cef-bb85-cbf5a875b458"
+      }
+    }
   }
 }
