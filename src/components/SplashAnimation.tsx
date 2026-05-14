@@ -7,9 +7,11 @@ const { width } = Dimensions.get('window');
 export default function SplashAnimation({ onDone }: { onDone: () => void }) {
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
-    const fallback = setTimeout(onDone, 2000);
+    const fallback = setTimeout(() => onDoneRef.current(), 2000);
 
     const timer = setTimeout(() => {
       Animated.parallel([
@@ -24,7 +26,7 @@ export default function SplashAnimation({ onDone }: { onDone: () => void }) {
           delay: 180,
           useNativeDriver: true,
         }),
-      ]).start(() => { clearTimeout(fallback); onDone(); });
+      ]).start(() => { clearTimeout(fallback); onDoneRef.current(); });
     }, 900);
 
     return () => { clearTimeout(timer); clearTimeout(fallback); };

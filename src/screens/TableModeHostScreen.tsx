@@ -46,24 +46,26 @@ export default function TableModeHostScreen({ navigation, route }: Props) {
       socket = io(API_URL, { transports: ['websocket', 'polling'] });
       socketRef.current = socket;
 
-    socket.on('connect', () => {
-      setConnected(true);
-      socket.emit('create_session', { items: receipt.items });
-    });
+      socket.on('connect', () => {
+        setConnected(true);
+        socket.emit('create_session', { items: receipt.items });
+      });
 
-    socket.on('session_created', ({ code }: { code: string }) => {
-      setSessionCode(code);
-    });
+      socket.on('session_created', ({ code }: { code: string }) => {
+        setSessionCode(code);
+      });
 
-    socket.on('session_update', ({
-      claims: newClaims,
-      participants: newParticipants,
-    }: { claims: Claims; participants: string[] }) => {
-      setClaims(newClaims);
-      setParticipants(newParticipants);
-    });
+      socket.on('session_update', ({
+        claims: newClaims,
+        participants: newParticipants,
+      }: { claims: Claims; participants: string[] }) => {
+        setClaims(newClaims);
+        setParticipants(newParticipants);
+      });
 
       socket.on('disconnect', () => setConnected(false));
+    }).catch(() => {
+      setConnected(false);
     });
 
     return () => { socket?.disconnect(); };
