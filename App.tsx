@@ -1,5 +1,5 @@
-import React, { useState, Component } from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, Component, useEffect } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -56,6 +56,31 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: st
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
+  const [fatalError, setFatalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const g = global as any;
+    const prev = g.ErrorUtils?.getGlobalHandler?.();
+    g.ErrorUtils?.setGlobalHandler?.((error: Error, isFatal: boolean) => {
+      if (isFatal) {
+        setFatalError(error.message + '\n\n' + (error.stack?.split('\n').slice(0, 10).join('\n') ?? ''));
+      } else if (prev) {
+        prev(error, isFatal);
+      }
+    });
+    return () => { if (prev) g.ErrorUtils?.setGlobalHandler?.(prev); };
+  }, []);
+
+  if (fatalError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#1a1a2e', padding: 24, paddingTop: 60 }}>
+        <Text style={{ color: '#e74c3c', fontSize: 16, fontWeight: 'bold', marginBottom: 12 }}>JS Fatal Error:</Text>
+        <ScrollView>
+          <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'monospace' }}>{fatalError}</Text>
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -66,10 +91,8 @@ export default function App() {
           <Stack.Navigator
             initialRouteName="Home"
             screenOptions={{
-              headerStyle: { backgroundColor: C.bg },
               headerTintColor: C.primary,
               headerTitleStyle: { fontWeight: '700', color: C.text },
-              headerBackTitleVisible: false,
               contentStyle: { backgroundColor: C.bg },
             }}
           >
