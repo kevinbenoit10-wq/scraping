@@ -35,15 +35,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "react-native-image-picker",
-        {
-          "photoLibraryUsageDescription": "We need photo library access to import receipt photos.",
-          "cameraPermissionText": "We need camera access to scan your receipt."
-        }
-      ]
-    ],
+    "plugins": [],
     "extra": {
       "eas": {
         "projectId": "133ea419-c336-4cef-bb85-cbf5a875b458"
