@@ -13,7 +13,17 @@ import { C } from './src/theme';
 function lazy(loader: () => Promise<{ default: React.ComponentType<any> }>) {
   return function LazyScreen(props: any) {
     const [Comp, setComp] = React.useState<React.ComponentType<any> | null>(null);
-    React.useEffect(() => { loader().then(m => setComp(() => m.default)); }, []);
+    const [err, setErr] = React.useState<string | null>(null);
+    React.useEffect(() => {
+      loader()
+        .then(m => setComp(() => m.default))
+        .catch(e => setErr(e?.message || String(e)));
+    }, []);
+    if (err) return (
+      <View style={{ flex: 1, backgroundColor: '#c0392b', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <Text style={{ color: '#fff', fontSize: 14, textAlign: 'center' }}>{err}</Text>
+      </View>
+    );
     if (!Comp) return null;
     return <Comp {...props} />;
   };
