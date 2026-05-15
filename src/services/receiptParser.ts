@@ -121,12 +121,11 @@ export function calculateSummaries(
   }
 
   const people = Array.from(peopleMap.values());
-  const totalClaimed = people.reduce((s, p) => s + p.subtotal, 0);
+  const subtotalBase = receipt.subtotal > 0 ? receipt.subtotal : people.reduce((s, p) => s + p.subtotal, 0);
   const deliveryFeeShare = people.length > 0 ? receipt.deliveryFee / people.length : 0;
 
   return people.map((person) => {
-    const taxShare =
-      totalClaimed > 0 ? (person.subtotal / totalClaimed) * receipt.tax : 0;
+    const taxShare = subtotalBase > 0 ? (person.subtotal / subtotalBase) * receipt.tax : 0;
     return {
       name: person.name,
       items: person.items,
